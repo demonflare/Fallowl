@@ -1,0 +1,101 @@
+          ╵         ~~~~~~~~~~~~~~~~~~
+
+  The original member "getCallByTwilioSid" is here:
+
+    server/storage.ts:2193:8:
+      2193 │   async getCallByTwilioSid(twilioCallSid: string): Promise<Call | undefined> {
+           ╵         ~~~~~~~~~~~~~~~~~~
+
+1 warning
+
+  dist/index.js  490.0kb
+
+⚡ Done in 67ms
+ubuntu@ip-172-31-15-13:~/Fallowl$ pm2 start npm --name fallowl --cwd /home/ubuntu/Fallowl -- start
+[PM2] Starting /home/ubuntu/.nvm/versions/node/v20.19.5/bin/npm in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name       │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ fallowl    │ default     │ 0.39.7  │ fork    │ 0        │ 0      │ 15   │ errored   │ 0%       │ 0b       │ ubuntu   │ disabled │
+│ 1  │ fallowl    │ default     │ 0.39.7  │ fork    │ 28697    │ 0s     │ 0    │ online    │ 0%       │ 18.9mb   │ ubuntu   │ disabled │
+└────┴────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+ubuntu@ip-172-31-15-13:~/Fallowl$ pm2 save
+[PM2] Saving current process list...
+[PM2] Successfully saved in /home/ubuntu/.pm2/dump.pm2
+ubuntu@ip-172-31-15-13:~/Fallowl$ # Remove the errored duplicate process
+pm2 delete 0
+
+# Check the current logs
+pm2 logs fallowl --lines 30
+[PM2] Applying action deleteProcessId on app [0](ids: [ '0' ])
+[PM2] [0](0) ✓
+┌────┬────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name       │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 1  │ fallowl    │ default     │ 0.39.7  │ fork    │ 28697    │ 71s    │ 0    │ online    │ 0%       │ 55.7mb   │ ubuntu   │ disabled │
+└────┴────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[TAILING] Tailing last 30 lines for [fallowl] process (change the value with --lines option)
+/home/ubuntu/.pm2/logs/fallowl-out.log last 30 lines:
+1|fallowl  | > NODE_ENV=production node dist/index.js
+1|fallowl  | 
+1|fallowl  | ⏭️  Skipping seed data (set AUTO_SEED=true to enable)
+1|fallowl  | ✅ WebSocket server initialized on path /ws
+1|fallowl  | 4:15:37 PM [express] serving on port 5000 in production mode
+1|fallowl  | 
+1|fallowl  | > rest-express@1.0.0 start
+1|fallowl  | > NODE_ENV=production node dist/index.js
+1|fallowl  | 
+1|fallowl  | ⏭️  Skipping seed data (set AUTO_SEED=true to enable)
+1|fallowl  | ✅ WebSocket server initialized on path /ws
+1|fallowl  | 4:20:40 PM [express] serving on port 5000 in production mode
+1|fallowl  | 
+1|fallowl  | > rest-express@1.0.0 start
+1|fallowl  | > NODE_ENV=production node dist/index.js
+1|fallowl  | 
+1|fallowl  | [dotenv@17.2.3] injecting env (22) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+1|fallowl  | ✓ Production CORS origins configured: [ 'https://app.fallowl.com' ]
+1|fallowl  | ✅ SMS templates seeded successfully
+1|fallowl  | ✅ SMS campaigns seeded successfully
+1|fallowl  | ✅ Lead sources already exist, skipping seed
+1|fallowl  | ✅ Lead statuses already exist, skipping seed
+1|fallowl  | ✅ Lead campaigns seeded successfully
+1|fallowl  | ✅ Lead data seeded successfully
+1|fallowl  | 🌱 Seeding demo contacts...
+1|fallowl  | ✅ Demo contacts already exist, skipping seed
+1|fallowl  | 🌱 Seeding contact lists...
+1|fallowl  | ✅ Contact lists seeded successfully
+1|fallowl  | ✅ WebSocket server initialized on path /ws
+1|fallowl  | 4:55:36 PM [express] serving on port 5000
+
+/home/ubuntu/.pm2/logs/fallowl-error.log last 30 lines:
+1|fallowl  |     at Layer.handle [as handle_request] (/home/ubuntu/Fallowl/node_modules/express/lib/router/layer.js:95:5)
+1|fallowl  |     at trim_prefix (/home/ubuntu/Fallowl/node_modules/express/lib/router/index.js:328:13)
+1|fallowl  |     at /home/ubuntu/Fallowl/node_modules/express/lib/router/index.js:286:9
+1|fallowl  |     at Function.process_params (/home/ubuntu/Fallowl/node_modules/express/lib/router/index.js:346:12)
+1|fallowl  |     at next (/home/ubuntu/Fallowl/node_modules/express/lib/router/index.js:280:10)
+1|fallowl  |     at expressInit (/home/ubuntu/Fallowl/node_modules/express/lib/middleware/init.js:40:5)
+1|fallowl  | ⚠️ CORS request from https://65.2.4.77 rejected - not in allowed origins: https://app.fallowl.com
+1|fallowl  | Error: Origin https://65.2.4.77 not allowed
+1|fallowl  |     at origin (file:///home/ubuntu/Fallowl/dist/index.js:12109:14)
+1|fallowl  |     at /home/ubuntu/Fallowl/node_modules/cors/lib/index.js:219:13
+1|fallowl  |     at optionsCallback (/home/ubuntu/Fallowl/node_modules/cors/lib/index.js:199:9)
+1|fallowl  |     at corsMiddleware (/home/ubuntu/Fallowl/node_modules/cors/lib/index.js:204:7)
+1|fallowl  |     at Layer.handle [as handle_request] (/home/ubuntu/Fallowl/node_modules/express/lib/router/layer.js:95:5)
+1|fallowl  |     at trim_prefix (/home/ubuntu/Fallowl/node_modules/express/lib/router/index.js:328:13)
+1|fallowl  |     at /home/ubuntu/Fallowl/node_modules/express/lib/router/index.js:286:9
+1|fallowl  |     at Function.process_params (/home/ubuntu/Fallowl/node_modules/express/lib/router/index.js:346:12)
+1|fallowl  |     at next (/home/ubuntu/Fallowl/node_modules/express/lib/router/index.js:280:10)
+1|fallowl  |     at expressInit (/home/ubuntu/Fallowl/node_modules/express/lib/middleware/init.js:40:5)
+1|fallowl  | ⚠️ CORS request from https://65.2.4.77 rejected - not in allowed origins: https://app.fallowl.com
+1|fallowl  | Error: Origin https://65.2.4.77 not allowed
+1|fallowl  |     at origin (file:///home/ubuntu/Fallowl/dist/index.js:12109:14)
+1|fallowl  |     at /home/ubuntu/Fallowl/node_modules/cors/lib/index.js:219:13
+1|fallowl  |     at optionsCallback (/home/ubuntu/Fallowl/node_modules/cors/lib/index.js:199:9)
+1|fallowl  |     at corsMiddleware (/home/ubuntu/Fallowl/node_modules/cors/lib/index.js:204:7)
+1|fallowl  |     at Layer.handle [as handle_request] (/home/ubuntu/Fallowl/node_modules/express/lib/router/layer.js:95:5)
+1|fallowl  |     at trim_prefix (/home/ubuntu/Fallowl/node_modules/express/lib/router/index.js:328:13)
+1|fallowl  |     at /home/ubuntu/Fallowl/node_modules/express/lib/router/index.js:286:9
+1|fallowl  |     at Function.process_params (/home/ubuntu/Fallowl/node_modules/express/lib/router/index.js:346:12)
+1|fallowl  |     at next (/home/ubuntu/Fallowl/node_modules/express/lib/router/index.js:280:10)
+1|fallowl  |     at expressInit (/home/ubuntu/Fallowl/node_modules/express/lib/middleware/init.js:40:5)
