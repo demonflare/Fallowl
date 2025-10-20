@@ -1,0 +1,44 @@
+
+vite v5.4.19 building for production...
+✓ 2334 modules transformed.
+../dist/public/index.html                                          1.64 kB │ gzip:   0.82 kB
+../dist/public/assets/FallOwl_logo_1759278988195-Cw6vaA9i.png     11.84 kB
+../dist/public/assets/FallOwl_logo_1759339763714-DBNsIePy.png     14.35 kB
+../dist/public/assets/index-BWO4IWZB.css                         107.68 kB │ gzip:  16.93 kB
+../dist/public/assets/index-DJ5XIpSt.js                        1,431.90 kB │ gzip: 369.88 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 13.72s
+▲ [WARNING] Duplicate member "getCallByTwilioSid" in class body [duplicate-class-member]
+
+    server/storage.ts:2265:8:
+      2265 │   async getCallByTwilioSid(callSid: string): Promise<Call | null> {
+           ╵         ~~~~~~~~~~~~~~~~~~
+
+  The original member "getCallByTwilioSid" is here:
+
+    server/storage.ts:2193:8:
+      2193 │   async getCallByTwilioSid(twilioCallSid: string): Promise<Call | undefined> {
+           ╵         ~~~~~~~~~~~~~~~~~~
+
+1 warning
+
+  dist/index.js  490.0kb
+
+⚡ Done in 67ms
+ubuntu@ip-172-31-15-13:~/Fallowl$ pm2 start npm --name fallowl --cwd /home/ubuntu/Fallowl -- start
+[PM2] Starting /home/ubuntu/.nvm/versions/node/v20.19.5/bin/npm in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name       │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ fallowl    │ default     │ 0.39.7  │ fork    │ 0        │ 0      │ 15   │ errored   │ 0%       │ 0b       │ ubuntu   │ disabled │
+│ 1  │ fallowl    │ default     │ 0.39.7  │ fork    │ 28697    │ 0s     │ 0    │ online    │ 0%       │ 18.9mb   │ ubuntu   │ disabled │
+└────┴────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+ubuntu@ip-172-31-15-13:~/Fallowl$ pm2 save
+[PM2] Saving current process list...
+[PM2] Successfully saved in /home/ubuntu/.pm2/dump.pm2
+ubuntu@ip-172-31-15-13:~/Fallowl$ 
