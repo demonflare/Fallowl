@@ -33,8 +33,10 @@ const auth0Audience = process.env.AUTH0_AUDIENCE;
 const checkJwt = expressjwt({
   secret: expressJwtSecret({
     cache: true,
+    cacheMaxEntries: 5,
+    cacheMaxAge: 600000, // 10 minutes in ms
     rateLimit: true,
-    jwksRequestsPerMinute: 5,
+    jwksRequestsPerMinute: 100, // Increased from 5 to 100
     jwksUri: `https://${auth0Domain}/.well-known/jwks.json`
   }),
   ...(auth0Audience ? { audience: auth0Audience } : {}),
