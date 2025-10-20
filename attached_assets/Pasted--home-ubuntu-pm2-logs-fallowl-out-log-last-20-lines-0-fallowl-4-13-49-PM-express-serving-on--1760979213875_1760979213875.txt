@@ -1,0 +1,44 @@
+/home/ubuntu/.pm2/logs/fallowl-out.log last 20 lines:
+0|fallowl  | 4:13:49 PM [express] serving on port 5000 in development mode
+0|fallowl  | 4:13:49 PM [express] CORS enabled for origins: http://localhost:5000, http://localhost:5173, http://127.0.0.1:5000, http://127.0.0.1:5173
+0|fallowl  | ⏭️  Skipping seed data (set AUTO_SEED=true to enable)
+0|fallowl  | ✅ WebSocket server initialized on path /ws
+0|fallowl  | 4:14:38 PM [express] serving on port 5000 in development mode
+0|fallowl  | 4:14:38 PM [express] CORS enabled for origins: http://localhost:5000, http://localhost:5173, http://127.0.0.1:5000, http://127.0.0.1:5173
+0|fallowl  | 
+0|fallowl  | > rest-express@1.0.0 start
+0|fallowl  | > NODE_ENV=production node dist/index.js
+0|fallowl  | 
+0|fallowl  | ⏭️  Skipping seed data (set AUTO_SEED=true to enable)
+0|fallowl  | ✅ WebSocket server initialized on path /ws
+0|fallowl  | 4:15:37 PM [express] serving on port 5000 in production mode
+0|fallowl  | 
+0|fallowl  | > rest-express@1.0.0 start
+0|fallowl  | > NODE_ENV=production node dist/index.js
+0|fallowl  | 
+0|fallowl  | ⏭️  Skipping seed data (set AUTO_SEED=true to enable)
+0|fallowl  | ✅ WebSocket server initialized on path /ws
+0|fallowl  | 4:20:40 PM [express] serving on port 5000 in production mode
+
+/home/ubuntu/.pm2/logs/fallowl-error.log last 20 lines:
+0|fallowl  | npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/home/ubuntu/package.json'
+0|fallowl  | npm error enoent This is related to npm not being able to find a file.
+0|fallowl  | npm error enoent
+0|fallowl  | npm error A complete log of this run can be found in: /home/ubuntu/.npm/_logs/2025-10-20T16_53_13_900Z-debug-0.log
+0|fallowl  | npm error code ENOENT
+0|fallowl  | npm error syscall open
+0|fallowl  | npm error path /home/ubuntu/package.json
+0|fallowl  | npm error errno -2
+0|fallowl  | npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/home/ubuntu/package.json'
+0|fallowl  | npm error enoent This is related to npm not being able to find a file.
+0|fallowl  | npm error enoent
+0|fallowl  | npm error A complete log of this run can be found in: /home/ubuntu/.npm/_logs/2025-10-20T16_53_14_137Z-debug-0.log
+0|fallowl  | npm error code ENOENT
+0|fallowl  | npm error syscall open
+0|fallowl  | npm error path /home/ubuntu/package.json
+0|fallowl  | npm error errno -2
+0|fallowl  | npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/home/ubuntu/package.json'
+0|fallowl  | npm error enoent This is related to npm not being able to find a file.
+0|fallowl  | npm error enoent
+0|fallowl  | npm error A complete log of this run can be found in: /home/ubuntu/.npm/_logs/2025-10-20T16_53_14_374Z-debug-0.log
+
