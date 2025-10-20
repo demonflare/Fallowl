@@ -1,0 +1,98 @@
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Enter email address (used for urgent renewal and security notices)
+ (Enter 'c' to cancel): amit@fallowl.com
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Please read the Terms of Service at
+https://letsencrypt.org/documents/LE-SA-v1.5-February-24-2025.pdf. You must
+agree in order to register with the ACME server. Do you agree?
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(Y)es/(N)o: Y
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Would you be willing, once your first certificate is successfully issued, to
+share your email address with the Electronic Frontier Foundation, a founding
+partner of the Let's Encrypt project and the non-profit organization that
+develops Certbot? We'd like to send you email about our work encrypting the web,
+EFF news, campaigns, and ways to support digital freedom.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(Y)es/(N)o: Y
+Account registered.
+Requesting a certificate for app.fallowl.com
+
+Certbot failed to authenticate some domains (authenticator: nginx). The Certificate Authority reported these problems:
+  Domain: app.fallowl.com
+  Type:   unauthorized
+  Detail: 34.111.179.208: Invalid response from http://app.fallowl.com/.well-known/acme-challenge/JTKjqpFMw_Moqy28X5XOjlUAYg-gq7dD0P0Bxu5e59g: 500
+
+Hint: The Certificate Authority failed to verify the temporary nginx configuration changes made by Certbot. Ensure the listed domains point to this nginx server and that it is accessible from the internet.
+
+Some challenges have failed.
+Ask for help or search for solutions at https://community.letsencrypt.org. See the logfile /var/log/letsencrypt/letsencrypt.log or re-run Certbot with -v for more details.
+ubuntu@ip-172-31-15-13:~/fallowl$ sudo certbot --nginx -d app.fallowl.com
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Requesting a certificate for app.fallowl.com
+
+Certbot failed to authenticate some domains (authenticator: nginx). The Certificate Authority reported these problems:
+  Domain: app.fallowl.com
+  Type:   unauthorized
+  Detail: 34.111.179.208: Invalid response from http://app.fallowl.com/.well-known/acme-challenge/yUD1vMNxBYjsChbNxWiokPABeJqUpGVGUJrsNorYKU4: 500
+
+Hint: The Certificate Authority failed to verify the temporary nginx configuration changes made by Certbot. Ensure the listed domains point to this nginx server and that it is accessible from the internet.
+
+Some challenges have failed.
+Ask for help or search for solutions at https://community.letsencrypt.org. See the logfile /var/log/letsencrypt/letsencrypt.log or re-run Certbot with -v for more details.
+ubuntu@ip-172-31-15-13:~/fallowl$ # Edit the Nginx config
+sudo nano /etc/nginx/sites-available/fallowl
+ubuntu@ip-172-31-15-13:~/fallowl$ # Create directory for Let's Encrypt challenges
+sudo mkdir -p /var/www/certbot/.well-known/acme-challenge
+
+# Set proper permissions
+sudo chmod -R 755 /var/www/certbot
+
+# Test Nginx config
+sudo nginx -t
+
+# Restart Nginx
+sudo systemctl restart nginx
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+ubuntu@ip-172-31-15-13:~/fallowl$ # Create a test file
+echo "test" | sudo tee /var/www/certbot/.well-known/acme-challenge/test
+
+# Test if it's accessible (should return "test")
+curl http://app.fallowl.com/.well-known/acme-challenge/test
+test
+ubuntu@ip-172-31-15-13:~/fallowl$ # Now run certbot
+sudo certbot --nginx -d app.fallowl.com
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Requesting a certificate for app.fallowl.com
+
+Certbot failed to authenticate some domains (authenticator: nginx). The Certificate Authority reported these problems:
+  Domain: app.fallowl.com
+  Type:   unauthorized
+  Detail: 34.111.179.208: Invalid response from http://app.fallowl.com/.well-known/acme-challenge/PVv0qliG_0C7J-ZLsl2eYl-IUG32c0um0O9zLb5pgoQ: 500
+
+Hint: The Certificate Authority failed to verify the temporary nginx configuration changes made by Certbot. Ensure the listed domains point to this nginx server and that it is accessible from the internet.
+
+Some challenges have failed.
+Ask for help or search for solutions at https://community.letsencrypt.org. See the logfile /var/log/letsencrypt/letsencrypt.log or re-run Certbot with -v for more details.
+ubuntu@ip-172-31-15-13:~/fallowl$ # Check PM2 logs to see what's happening
+pm2 logs fallowl --lines 50
+
+# Check nginx error log
+sudo tail -20 /var/log/nginx/error.log
+Command 'pm2' not found, did you mean:
+  command 'gm2' from deb gm2 (4:13.2.0-2ubuntu1)
+  command 'pms' from deb pms (0.42-1.1)
+  command 'wm2' from deb wm2 (4+svn20090216-4build1)
+  command 'pmc' from deb linuxptp (4.0-1ubuntu1.1)
+  command 'tpm2' from deb tpm2-tools (5.4-1)
+  command 'pom2' from deb libpod-pom-perl (2.01-4)
+  command 'pmg' from deb python3-pymatgen (2023.06.23+dfsg1-2build1)
+  command 'pm' from deb powerman (2.3.27-4)
+  command 'pmw' from deb pmw (1:5.22-1)
+Try: sudo apt install <deb name>
+2025/10/20 09:02:20 [notice] 18161#18161: using inherited sockets from "5;6;"
+ubuntu@ip-172-31-15-13:~/fallowl$ 

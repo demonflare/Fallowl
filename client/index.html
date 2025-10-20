@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <title>FallOwl - Cloud-Based Dialer & CRM Platform</title>
+    <meta name="description" content="FallOwl is the most advanced cloud-based dialer and CRM platform. Boost your team's productivity with intelligent calling, SMS campaigns, and comprehensive analytics." />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      // Fix Vite HMR WebSocket URL for Replit environment
+      (function() {
+        const OriginalWebSocket = window.WebSocket;
+        window.WebSocket = function(url, protocols) {
+          // Fix malformed localhost URLs from Vite HMR
+          if (typeof url === 'string' && url.includes('localhost:undefined')) {
+            url = url.replace('localhost:undefined', window.location.host);
+          }
+          return new OriginalWebSocket(url, protocols);
+        };
+        // Copy static properties
+        Object.setPrototypeOf(window.WebSocket, OriginalWebSocket);
+        window.WebSocket.prototype = OriginalWebSocket.prototype;
+      })();
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
+    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
+  </body>
+</html>

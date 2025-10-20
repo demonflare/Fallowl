@@ -1,0 +1,42 @@
+0|fallowl  | 4:07:49 PM [express] CORS enabled for origins: http://localhost:5000, http://localhost:5173, http://127.0.0.1:5000, http://127.0.0.1:5173
+0|fallowl  | ⏭️  Skipping seed data (set AUTO_SEED=true to enable)
+0|fallowl  | ✅ WebSocket server initialized on path /ws
+0|fallowl  | 4:13:48 PM [express] serving on port 5000 in development mode
+0|fallowl  | 4:13:48 PM [express] CORS enabled for origins: http://localhost:5000, http://localhost:5173, http://127.0.0.1:5000, http://127.0.0.1:5173
+0|fallowl  | ⏭️  Skipping seed data (set AUTO_SEED=true to enable)
+0|fallowl  | ✅ WebSocket server initialized on path /ws
+0|fallowl  | 4:13:49 PM [express] serving on port 5000 in development mode
+0|fallowl  | 4:13:49 PM [express] CORS enabled for origins: http://localhost:5000, http://localhost:5173, http://127.0.0.1:5000, http://127.0.0.1:5173
+0|fallowl  | ⏭️  Skipping seed data (set AUTO_SEED=true to enable)
+0|fallowl  | ✅ WebSocket server initialized on path /ws
+0|fallowl  | 4:14:38 PM [express] serving on port 5000 in development mode
+0|fallowl  | 4:14:38 PM [express] CORS enabled for origins: http://localhost:5000, http://localhost:5173, http://127.0.0.1:5000, http://127.0.0.1:5173
+0|fallowl  | 
+0|fallowl  | > rest-express@1.0.0 start
+0|fallowl  | > NODE_ENV=production node dist/index.js
+0|fallowl  | 
+0|fallowl  | ⏭️  Skipping seed data (set AUTO_SEED=true to enable)
+0|fallowl  | ✅ WebSocket server initialized on path /ws
+0|fallowl  | 4:15:37 PM [express] serving on port 5000 in production mode
+
+/home/ubuntu/.pm2/logs/fallowl-error.log last 20 lines:
+0|fallowl  |     at /home/ubuntu/fallowl/node_modules/cors/lib/index.js:219:13
+0|fallowl  |     at optionsCallback (/home/ubuntu/fallowl/node_modules/cors/lib/index.js:199:9)
+0|fallowl  |     at corsMiddleware (/home/ubuntu/fallowl/node_modules/cors/lib/index.js:204:7)
+0|fallowl  |     at Layer.handle [as handle_request] (/home/ubuntu/fallowl/node_modules/express/lib/router/layer.js:95:5)
+0|fallowl  |     at trim_prefix (/home/ubuntu/fallowl/node_modules/express/lib/router/index.js:328:13)
+0|fallowl  |     at /home/ubuntu/fallowl/node_modules/express/lib/router/index.js:286:9
+0|fallowl  |     at Function.process_params (/home/ubuntu/fallowl/node_modules/express/lib/router/index.js:346:12)
+0|fallowl  |     at next (/home/ubuntu/fallowl/node_modules/express/lib/router/index.js:280:10)
+0|fallowl  |     at expressInit (/home/ubuntu/fallowl/node_modules/express/lib/middleware/init.js:40:5)
+0|fallowl  | Error: CORS not configured
+0|fallowl  |     at origin (file:///home/ubuntu/fallowl/dist/index.js:12123:23)
+0|fallowl  |     at /home/ubuntu/fallowl/node_modules/cors/lib/index.js:219:13
+0|fallowl  |     at optionsCallback (/home/ubuntu/fallowl/node_modules/cors/lib/index.js:199:9)
+0|fallowl  |     at corsMiddleware (/home/ubuntu/fallowl/node_modules/cors/lib/index.js:204:7)
+0|fallowl  |     at Layer.handle [as handle_request] (/home/ubuntu/fallowl/node_modules/express/lib/router/layer.js:95:5)
+0|fallowl  |     at trim_prefix (/home/ubuntu/fallowl/node_modules/express/lib/router/index.js:328:13)
+0|fallowl  |     at /home/ubuntu/fallowl/node_modules/express/lib/router/index.js:286:9
+0|fallowl  |     at Function.process_params (/home/ubuntu/fallowl/node_modules/express/lib/router/index.js:346:12)
+0|fallowl  |     at next (/home/ubuntu/fallowl/node_modules/express/lib/router/index.js:280:10)
+0|fallowl  |     at expressInit (/home/ubuntu/fallowl/node_modules/express/lib/middleware/init.js:40:5)
