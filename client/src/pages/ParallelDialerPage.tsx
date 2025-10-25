@@ -344,21 +344,7 @@ export default function ParallelDialerPage() {
     const data = event.detail;
     console.log('📞 Parallel call connected event:', data);
     
-    // Use lineId only for stable tracking across events
-    const lineKey = data.lineId;
-    if (!statsRecordedLinesRef.current.has(lineKey)) {
-      statsRecordedLinesRef.current.add(lineKey);
-      
-      // Count stats immediately
-      if (!data.isAnsweringMachine) {
-        setStats(prev => ({ ...prev, connected: prev.connected + 1 }));
-        console.log(`📊 Counted connected call for line ${data.lineId}`);
-      } else {
-        setStats(prev => ({ ...prev, voicemails: prev.voicemails + 1 }));
-        console.log(`📊 Counted voicemail for line ${data.lineId}`);
-      }
-    }
-    
+    // Update UI state only - stats will be counted in handleCallEnded for accuracy
     setCallLines(lines => lines.map(line => {
       if (line.id === data.lineId) {
         return { 
@@ -367,8 +353,7 @@ export default function ParallelDialerPage() {
           duration: data.duration || 0,
           isAnsweringMachine: data.isAnsweringMachine,
           answeredBy: data.answeredBy,
-          startTime: line.startTime || Date.now(),
-          statsRecorded: true
+          startTime: line.startTime || Date.now()
         };
       }
       return line;
@@ -411,36 +396,38 @@ export default function ParallelDialerPage() {
     
     setCallLines(lines => lines.map(line => {
       if (line.id === data.lineId) {
-        // Only update stats if not already recorded by handleCallConnected
-        if (line.status !== 'idle' && !statsRecordedLinesRef.current.has(lineKey)) {
-          statsRecordedLinesRef.current.add(lineKey);
+        // Count stats exactly once per call based on final outcome
+        // Use callSid for tracking instead of lineId since lines are reused
+        const callKey = data.callSid || lineKey;
+        if (line.status !== 'idle' && !statsRecordedLinesRef.current.has(callKey)) {
+          statsRecordedLinesRef.current.add(callKey);
           
-          // Update stats based on call outcome
-          if (data.status === 'failed' || data.status === 'busy' || data.status === 'no-answer' || data.status === 'canceled' || data.status === 'call-dropped') {
-            console.log(`📊 Counted failed call for line ${line.id}`);
+          // Determine final outcome category
+          const isFailure = ['failed', 'busy', 'no-answer', 'canceled', 'call-dropped', 'paused'].includes(data.status);
+          const isVoicemail = data.status === 'completed' && data.isAnsweringMachine;
+          const isConnected = data.status === 'completed' && !data.isAnsweringMachine;
+          
+          // Count in exactly one category
+          if (isFailure) {
+            console.log(`📊 Counted failed call for line ${line.id} (status: ${data.status})`);
             setStats(prev => ({ ...prev, failed: prev.failed + 1 }));
-          } else if (data.status === 'completed' && !data.isAnsweringMachine) {
-            // Successful completed call - count as connected if not already counted
-            console.log(`📊 Counted connected call for line ${line.id}`);
-            setStats(prev => ({ ...prev, connected: prev.connected + 1 }));
-          } else if (data.status === 'completed' && data.isAnsweringMachine) {
-            // Count voicemail if not already counted
+          } else if (isVoicemail) {
             console.log(`📊 Counted voicemail for line ${line.id}`);
             setStats(prev => ({ ...prev, voicemails: prev.voicemails + 1 }));
+          } else if (isConnected) {
+            console.log(`📊 Counted connected call for line ${line.id}`);
+            setStats(prev => ({ ...prev, connected: prev.connected + 1 }));
+            
+            // Add talk time for completed human calls
+            const callDuration = data.duration || line.duration || 0;
+            if (callDuration > 0) {
+              console.log(`📊 Recording talk time: ${callDuration}s for line ${line.id}`);
+              setStats(prev => ({ ...prev, talkTime: prev.talkTime + callDuration }));
+            }
           }
+        } else if (statsRecordedLinesRef.current.has(callKey)) {
+          console.log(`⏭️  Skipping stats for line ${line.id} - already counted for callSid ${callKey}`);
         }
-        
-        // Add talk time for completed calls (only once)
-        if (data.status === 'completed' && !data.isAnsweringMachine) {
-          const callDuration = data.duration || line.duration || 0;
-          if (callDuration > 0) {
-            console.log(`📊 Recording talk time: ${callDuration}s for line ${line.id}`);
-            setStats(prev => ({ ...prev, talkTime: prev.talkTime + callDuration }));
-          }
-        }
-        
-        // Clean up tracking ref for this line
-        statsRecordedLinesRef.current.delete(lineKey);
         
         // IMMEDIATELY mark line as idle to trigger auto-dial
         console.log(`✅ Line ${line.id} reset to idle - ready for next call`);
@@ -573,7 +560,14 @@ export default function ParallelDialerPage() {
                 description: `Line ${line.id.split('-')[1]} was stuck and has been reset. This may indicate network issues.`,
                 variant: "destructive"
               });
-              setStats(prev => ({ ...prev, failed: prev.failed + 1 }));
+              
+              // Mark this as counted to prevent double-counting if 'ended' event arrives later
+              const callKey = line.callSid || line.id;
+              if (!statsRecordedLinesRef.current.has(callKey)) {
+                statsRecordedLinesRef.current.add(callKey);
+                setStats(prev => ({ ...prev, failed: prev.failed + 1 }));
+              }
+              
               warningShownRef.delete(line.id);
               
               return {
@@ -728,13 +722,10 @@ export default function ParallelDialerPage() {
               return;
             }
             
-            // CRITICAL: Prevent duplicate stat counting for rapid failures
-            // Only increment stats if no timeout already exists for this line
+            // Stats will be counted by handleCallEnded event when it arrives
+            // Clean up any existing timeout to prevent race condition
             const existingTimeout = lineResetTimeoutsRef.current.get(lineId);
-            if (!existingTimeout) {
-              setStats(prev => ({ ...prev, failed: prev.failed + 1 }));
-            } else {
-              // Cancel existing timeout to prevent race condition
+            if (existingTimeout) {
               clearTimeout(existingTimeout);
               lineResetTimeoutsRef.current.delete(lineId);
             }
@@ -1018,6 +1009,10 @@ export default function ParallelDialerPage() {
     // Clear all pending line reset timeouts to prevent race conditions
     lineResetTimeoutsRef.current.forEach(timeoutId => clearTimeout(timeoutId));
     lineResetTimeoutsRef.current.clear();
+    
+    // Clear stats tracking to prevent unbounded memory growth
+    statsRecordedLinesRef.current.clear();
+    console.log('🧹 Cleared stats tracking ref');
     
     // Hangup ALL active calls (including connected ones) with proper error handling
     callLines.forEach(async (line) => {
