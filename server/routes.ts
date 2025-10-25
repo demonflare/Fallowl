@@ -4578,7 +4578,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if there's an active conference for this user
       const conferenceSetting = await storage.getSetting(`parallel_dialer_conference_${verifiedUserId}`);
-      let conferenceData = conferenceSetting?.value as any;
+      let conferenceData: any = conferenceSetting?.value || null;
       
       // Validate conference is still active and not expired
       if (conferenceData && conferenceData.status === 'active') {
@@ -4586,8 +4586,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const conferenceAge = Date.now() - conferenceCreatedAt;
         // Conference expires after 10 minutes of inactivity
         if (conferenceAge > 10 * 60 * 1000) {
-          console.warn(`⚠️ Conference ${conferenceData.conferenceName} expired (${Math.floor(conferenceAge / 1000)}s old), will use direct connection`);
-          conferenceData.status = 'expired';
+          console.warn(`⚠️ Conference ${conferenceData.conferenceName} expired (${Math.floor(conferenceAge / 1000)}s old), cleaning up`);
+          
+          // Completely remove expired conference setting
+          await storage.setSetting(`parallel_dialer_conference_${verifiedUserId}`, null);
+          
+          // Clear primary call setting as well since session is expired
+          await storage.setSetting(`parallel_dialer_primary_call_${verifiedUserId}`, null);
+          
+          // Clear secondary call settings (they follow pattern: parallel_dialer_secondary_call_{userId}_{lineId})
+          // We'll attempt to clear for common line IDs (line-0 through line-9)
+          for (let i = 0; i < 10; i++) {
+            await storage.setSetting(`parallel_dialer_secondary_call_${verifiedUserId}_line-${i}`, null);
+          }
+          
+          conferenceData = null; // Signal that conference doesn't exist
+          console.log('✅ Cleaned up expired conference and all related settings');
         }
       }
       
@@ -6145,15 +6159,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      await storage.setSetting(`parallel_dialer_conference_${userId}`, {
-        ...conferenceData,
-        status: 'ended',
-        endTime: Date.now()
-      });
+      // Completely remove conference setting (don't just mark as ended)
+      await storage.setSetting(`parallel_dialer_conference_${userId}`, null);
+      console.log('✅ Removed conference setting');
 
-      // Clear primary call setting by setting it to null (settings will be recreated on next session)
+      // Clear primary call setting (settings will be recreated on next session)
       await storage.setSetting(`parallel_dialer_primary_call_${userId}`, null);
       console.log('✅ Cleared primary call setting');
+      
+      // Clean up secondary call settings for all possible line IDs (line-0 through line-9)
+      for (let i = 0; i < 10; i++) {
+        await storage.setSetting(`parallel_dialer_secondary_call_${userId}_line-${i}`, null);
+      }
+      console.log('✅ Cleaned up all secondary call settings');
 
       res.json({ message: 'Conference ended successfully' });
 
