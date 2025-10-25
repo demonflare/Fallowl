@@ -32,7 +32,8 @@ import {
   insertContactListSchema, insertContactListMembershipSchema,
   insertLeadSourceSchema, insertLeadStatusSchema, insertLeadCampaignSchema,
   insertLeadSchema, insertLeadActivitySchema, insertLeadTaskSchema,
-  insertLeadScoringSchema, insertLeadNurturingSchema
+  insertLeadScoringSchema, insertLeadNurturingSchema,
+  insertScheduledCallSchema, insertCallScriptSchema, insertCallDispositionSchema, insertEmailSchema
 } from "@shared/schema";
 
 // Auth0 JWT validation middleware
@@ -1831,6 +1832,243 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       await storage.deleteMessage(userId, id);
       res.json({ message: "Message deleted successfully" });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Scheduled Calls Routes
+  app.get("/api/scheduled-calls", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { db } = await import("./db");
+      const { scheduledCalls } = await import("@shared/schema");
+      const { eq, desc } = await import("drizzle-orm");
+      
+      const calls = await db.select().from(scheduledCalls)
+        .where(eq(scheduledCalls.userId, userId))
+        .orderBy(desc(scheduledCalls.scheduledFor));
+      
+      res.json(calls);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/scheduled-calls", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const validated = insertScheduledCallSchema.parse(req.body);
+      const { db } = await import("./db");
+      const { scheduledCalls } = await import("@shared/schema");
+      
+      const [scheduledCall] = await db.insert(scheduledCalls)
+        .values({ ...validated, userId })
+        .returning();
+      
+      res.json(scheduledCall);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/scheduled-calls/:id", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const id = parseInt(req.params.id);
+      const { db } = await import("./db");
+      const { scheduledCalls } = await import("@shared/schema");
+      const { eq, and } = await import("drizzle-orm");
+      
+      // Validate and sanitize input - exclude immutable fields
+      const validated = insertScheduledCallSchema.partial().parse(req.body);
+      const { userId: _, createdAt: __, updatedAt: ___, ...safeUpdates } = validated;
+      
+      const [updated] = await db.update(scheduledCalls)
+        .set({ ...safeUpdates, updatedAt: new Date() })
+        .where(and(eq(scheduledCalls.id, id), eq(scheduledCalls.userId, userId)))
+        .returning();
+      
+      if (!updated) {
+        return res.status(404).json({ message: "Scheduled call not found" });
+      }
+      
+      res.json(updated);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/scheduled-calls/:id", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const id = parseInt(req.params.id);
+      const { db } = await import("./db");
+      const { scheduledCalls } = await import("@shared/schema");
+      const { eq, and } = await import("drizzle-orm");
+      
+      await db.delete(scheduledCalls)
+        .where(and(eq(scheduledCalls.id, id), eq(scheduledCalls.userId, userId)));
+      
+      res.json({ message: "Scheduled call deleted successfully" });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Call Scripts Routes
+  app.get("/api/call-scripts", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { db } = await import("./db");
+      const { callScripts } = await import("@shared/schema");
+      const { eq, desc } = await import("drizzle-orm");
+      
+      const scripts = await db.select().from(callScripts)
+        .where(eq(callScripts.userId, userId))
+        .orderBy(desc(callScripts.createdAt));
+      
+      res.json(scripts);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/call-scripts", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const validated = insertCallScriptSchema.parse(req.body);
+      const { db } = await import("./db");
+      const { callScripts } = await import("@shared/schema");
+      
+      const [script] = await db.insert(callScripts)
+        .values({ ...validated, userId })
+        .returning();
+      
+      res.json(script);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/call-scripts/:id", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const id = parseInt(req.params.id);
+      const { db } = await import("./db");
+      const { callScripts } = await import("@shared/schema");
+      const { eq, and } = await import("drizzle-orm");
+      
+      // Validate and sanitize input - exclude immutable fields
+      const validated = insertCallScriptSchema.partial().parse(req.body);
+      const { userId: _, createdAt: __, updatedAt: ___, ...safeUpdates } = validated;
+      
+      const [updated] = await db.update(callScripts)
+        .set({ ...safeUpdates, updatedAt: new Date() })
+        .where(and(eq(callScripts.id, id), eq(callScripts.userId, userId)))
+        .returning();
+      
+      if (!updated) {
+        return res.status(404).json({ message: "Call script not found" });
+      }
+      
+      res.json(updated);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/call-scripts/:id", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const id = parseInt(req.params.id);
+      const { db } = await import("./db");
+      const { callScripts } = await import("@shared/schema");
+      const { eq, and } = await import("drizzle-orm");
+      
+      await db.delete(callScripts)
+        .where(and(eq(callScripts.id, id), eq(callScripts.userId, userId)));
+      
+      res.json({ message: "Call script deleted successfully" });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Call Dispositions Routes
+  app.get("/api/call-dispositions", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { db } = await import("./db");
+      const { callDispositions } = await import("@shared/schema");
+      const { eq, desc } = await import("drizzle-orm");
+      
+      const dispositions = await db.select().from(callDispositions)
+        .where(eq(callDispositions.userId, userId))
+        .orderBy(desc(callDispositions.priority));
+      
+      res.json(dispositions);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/call-dispositions", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const validated = insertCallDispositionSchema.parse(req.body);
+      const { db } = await import("./db");
+      const { callDispositions } = await import("@shared/schema");
+      
+      const [disposition] = await db.insert(callDispositions)
+        .values({ ...validated, userId })
+        .returning();
+      
+      res.json(disposition);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/call-dispositions/:id", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const id = parseInt(req.params.id);
+      const { db } = await import("./db");
+      const { callDispositions } = await import("@shared/schema");
+      const { eq, and } = await import("drizzle-orm");
+      
+      // Validate and sanitize input - exclude immutable fields
+      const validated = insertCallDispositionSchema.partial().parse(req.body);
+      const { userId: _, createdAt: __, updatedAt: ___, ...safeUpdates } = validated;
+      
+      const [updated] = await db.update(callDispositions)
+        .set({ ...safeUpdates, updatedAt: new Date() })
+        .where(and(eq(callDispositions.id, id), eq(callDispositions.userId, userId)))
+        .returning();
+      
+      if (!updated) {
+        return res.status(404).json({ message: "Call disposition not found" });
+      }
+      
+      res.json(updated);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/call-dispositions/:id", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const id = parseInt(req.params.id);
+      const { db } = await import("./db");
+      const { callDispositions } = await import("@shared/schema");
+      const { eq, and } = await import("drizzle-orm");
+      
+      await db.delete(callDispositions)
+        .where(and(eq(callDispositions.id, id), eq(callDispositions.userId, userId)));
+      
+      res.json({ message: "Call disposition deleted successfully" });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }

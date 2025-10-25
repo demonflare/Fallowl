@@ -25,7 +25,11 @@ import {
   List,
   Calendar,
   Zap,
-  Activity
+  Activity,
+  Clock,
+  FileText,
+  Tag,
+  Send
 } from "lucide-react";
 
 // Import FallOwl logos
@@ -38,7 +42,11 @@ const menuItems = [
   { id: 'parallel-dialer', label: 'Parallel Dialer', icon: Zap },
   { id: 'call-status-overview', label: 'Call Status', icon: Activity },
   { id: 'call-log', label: 'Call Log', icon: History },
+  { id: 'scheduled-calls', label: 'Scheduled Calls', icon: Clock },
+  { id: 'call-scripts', label: 'Call Scripts', icon: FileText },
+  { id: 'call-dispositions', label: 'Dispositions', icon: Tag },
   { id: 'sms', label: 'SMS', icon: MessageSquare },
+  { id: 'emails', label: 'Emails', icon: Send },
   { id: 'recordings', label: 'Recordings', icon: Mic },
   { id: 'contacts', label: 'Contacts', icon: Users },
   { id: 'lists', label: 'Lists', icon: List },
