@@ -4612,7 +4612,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       autoRecordEnabled = setting?.value === true || setting?.value === "true" || setting?.value === undefined;
       
       // Check if pre-recorded greeting is enabled for parallel dialer
-      const greetingSetting = await storage.getSetting(`parallel_dialer_greeting_user_${user.id}`);
+      // Use global setting (not user-specific) to match frontend implementation
+      const greetingSetting = await storage.getSetting(`parallel_dialer_greeting`);
       const greetingUrl = greetingSetting?.value as string | undefined;
       
       // Use Twilio SDK's VoiceResponse for proper XML generation
