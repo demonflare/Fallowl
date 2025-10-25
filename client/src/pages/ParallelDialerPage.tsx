@@ -155,6 +155,38 @@ export default function ParallelDialerPage() {
     };
   }, []);
 
+  // Update agent availability status when device readiness changes
+  useEffect(() => {
+    const updateAgentStatus = async () => {
+      try {
+        await apiRequest('POST', '/api/settings', {
+          key: 'agent_webrtc_status',
+          value: {
+            isReady,
+            lastUpdate: Date.now()
+          }
+        });
+        console.log(`📡 Updated agent WebRTC status: ${isReady ? 'ready' : 'not ready'}`);
+      } catch (error) {
+        console.error('Failed to update agent status:', error);
+      }
+    };
+    
+    updateAgentStatus();
+    
+    // Send heartbeat every 30 seconds while ready
+    let heartbeatInterval: NodeJS.Timeout | null = null;
+    if (isReady) {
+      heartbeatInterval = setInterval(updateAgentStatus, 30000);
+    }
+    
+    return () => {
+      if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+      }
+    };
+  }, [isReady]);
+
   const { data: contactLists = [] } = useQuery<ContactList[]>({
     queryKey: ["/api/lists"],
   });

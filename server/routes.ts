@@ -4644,6 +4644,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isHuman && (!conferenceData || conferenceData.status !== 'active' || !conferenceData.conferenceStarted)) {
         console.log(`🎯 Human answered - creating on-demand conference for user ${verifiedUserId}`);
         
+        // Check if agent is available before creating conference
+        // Settings API uses pattern: {key}_user_{userId}
+        const agentStatusSetting = await storage.getSetting(`agent_webrtc_status_user_${verifiedUserId}`);
+        const agentStatus = agentStatusSetting?.value as any;
+        const isAgentAvailable = agentStatus?.isReady === true;
+        const statusAge = agentStatus?.lastUpdate ? Date.now() - agentStatus.lastUpdate : Infinity;
+        const STATUS_MAX_AGE = 60000; // Consider status stale after 60 seconds
+        
+        if (!isAgentAvailable || statusAge > STATUS_MAX_AGE) {
+          console.warn(`⚠️ Agent unavailable (isReady: ${isAgentAvailable}, statusAge: ${statusAge}ms) - sending to voicemail`);
+          
+          // Agent is unavailable - play message and hang up
+          twimlResponse.say({ voice: 'alice' }, 'Sorry, the agent is currently unavailable. Please try again later.');
+          twimlResponse.hangup();
+          
+          res.set('Content-Type', 'text/xml');
+          res.send(twimlResponse.toString());
+          return;
+        }
+        
+        console.log(`✅ Agent is available (status age: ${statusAge}ms) - proceeding with conference creation`);
+        
         // Create conference and call agent to join
         const { client } = await userTwilioCache.getTwilioClient(verifiedUserId);
         const conferenceName = `parallel-dialer-${verifiedUserId}-${Date.now()}`;
