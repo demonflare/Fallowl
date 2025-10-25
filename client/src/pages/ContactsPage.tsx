@@ -16,6 +16,10 @@ import SmartContactModal from "@/components/contacts/SmartContactModal";
 import ContactFilters from "@/components/contacts/ContactFilters";
 import ContactImportModal from "@/components/contacts/ContactImportModal";
 import { ContactNotes } from "@/components/contacts/ContactNotes";
+import { ContactsPageSkeleton } from "@/components/skeletons/ContactsPageSkeleton";
+import { AdvancedFilters } from "@/components/filters/AdvancedFilters";
+import { DateRange } from "react-day-picker";
+import { isWithinInterval } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
@@ -402,46 +406,7 @@ export default function ContactsPage() {
   }, [contacts]);
 
   if (isLoading || (selectedListId !== 'all' && listContactsLoading)) {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-4">
-                <div className="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
-                <div className="w-16 h-4 bg-gray-300 rounded mb-1"></div>
-                <div className="w-20 h-3 bg-gray-300 rounded"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        <Card>
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-gray-50 rounded-lg p-4 animate-pulse">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
-                    <div className="flex space-x-1">
-                      <div className="w-16 h-6 bg-gray-300 rounded-full"></div>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="w-24 h-4 bg-gray-300 rounded"></div>
-                    <div className="w-32 h-3 bg-gray-300 rounded"></div>
-                    <div className="w-40 h-3 bg-gray-300 rounded"></div>
-                  </div>
-                  <div className="flex space-x-2 mt-4">
-                    <div className="flex-1 h-8 bg-gray-300 rounded"></div>
-                    <div className="flex-1 h-8 bg-gray-300 rounded"></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <ContactsPageSkeleton viewMode={viewMode} />;
   }
 
   return (

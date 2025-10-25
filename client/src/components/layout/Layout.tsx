@@ -2,6 +2,7 @@ import { useStore } from "@/store/useStore";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { canAccessView } from "@/lib/accessControl";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
@@ -57,6 +58,8 @@ const pageComponents = {
 export default function Layout() {
   const { currentView, darkMode, callStatus, setCurrentView } = useStore();
   const { user } = useAuth();
+  
+  useKeyboardShortcuts();
 
   useEffect(() => {
     if (darkMode) {

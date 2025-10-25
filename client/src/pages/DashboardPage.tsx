@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useStore } from "@/store/useStore";
+import { DashboardPageSkeleton } from "@/components/skeletons/DashboardPageSkeleton";
 import { 
   Phone, 
   MessageSquare, 
@@ -117,6 +118,14 @@ export default function DashboardPage() {
   const recentCalls = [...calls]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5);
+
+  if (isLoading) {
+    return (
+      <div className="p-4">
+        <DashboardPageSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-4">

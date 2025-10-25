@@ -22,6 +22,7 @@ import {
   Activity, TrendingUp, Clock, CheckCircle, XCircle, Users,
   Zap, Target, BarChart3, Mic, MicOff, AlertCircle, Info, Mail, Building2, Briefcase
 } from "lucide-react";
+import { ParallelDialerSkeleton } from "@/components/skeletons/ParallelDialerSkeleton";
 import { useTwilioDeviceV2 } from "@/hooks/useTwilioDeviceV2";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";

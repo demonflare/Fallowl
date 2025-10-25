@@ -26,6 +26,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { InlineAudioPlayer } from "@/components/InlineAudioPlayer";
+import { RecordingsPageSkeleton } from "@/components/skeletons/RecordingsPageSkeleton";
 import type { Recording } from "@shared/schema";
 
 export default function RecordingsPage() {
@@ -395,22 +396,7 @@ export default function RecordingsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="p-8">
-            <div className="animate-pulse space-y-4">
-              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-              <div className="space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <RecordingsPageSkeleton />;
   }
 
   return (

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { format } from 'date-fns';
+import { format, isWithinInterval } from 'date-fns';
+import { DateRange } from 'react-day-picker';
 import { 
   Phone, 
   PhoneIncoming, 
@@ -37,6 +38,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { CallLogPageSkeleton } from '@/components/skeletons/CallLogPageSkeleton';
+import { AdvancedFilters } from '@/components/filters/AdvancedFilters';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import type { Call } from '@shared/schema';
 
@@ -57,6 +60,8 @@ interface CallLogFilters {
   search: string;
   status: string;
   type: string;
+  dateRange?: DateRange;
+  disposition?: string;
 }
 
 const getCallIcon = (type: string, status: string) => {
@@ -117,8 +122,58 @@ export default function CallLogPage() {
     search: '',
     status: 'all',
     type: 'all',
+    dateRange: undefined,
+    disposition: 'all',
   });
   const { isConnected } = useWebSocket();
+  
+  const filterConfig = [
+    {
+      type: 'text' as const,
+      label: 'Search',
+      field: 'search',
+      placeholder: 'Search by phone, location, or notes',
+    },
+    {
+      type: 'select' as const,
+      label: 'Status',
+      field: 'status',
+      options: [
+        { value: 'completed', label: 'Completed' },
+        { value: 'missed', label: 'Missed' },
+        { value: 'busy', label: 'Busy' },
+        { value: 'failed', label: 'Failed' },
+        { value: 'cancelled', label: 'Cancelled' },
+      ],
+    },
+    {
+      type: 'select' as const,
+      label: 'Type',
+      field: 'type',
+      options: [
+        { value: 'inbound', label: 'Inbound' },
+        { value: 'outbound', label: 'Outbound' },
+      ],
+    },
+    {
+      type: 'select' as const,
+      label: 'Disposition',
+      field: 'disposition',
+      options: [
+        { value: 'answered', label: 'Answered' },
+        { value: 'voicemail', label: 'Voicemail' },
+        { value: 'no-answer', label: 'No Answer' },
+        { value: 'human', label: 'Human' },
+        { value: 'machine', label: 'Machine' },
+      ],
+    },
+    {
+      type: 'dateRange' as const,
+      label: 'Date Range',
+      field: 'dateRange',
+      placeholder: 'Filter by date range',
+    },
+  ];
 
   const { data: calls = [], isLoading, refetch } = useQuery<Call[]>({
     queryKey: ['/api/calls'],
@@ -129,22 +184,26 @@ export default function CallLogPage() {
   });
 
   const filteredCalls = calls.filter(call => {
-    const matchesSearch = call.phone.includes(filters.search) || 
-                         call.location?.toLowerCase().includes(filters.search.toLowerCase()) ||
-                         call.summary?.toLowerCase().includes(filters.search.toLowerCase());
-    const matchesStatus = filters.status === 'all' || call.status === filters.status;
-    const matchesType = filters.type === 'all' || call.type === filters.type;
+    const matchesSearch = !filters.search || 
+      call.phone.includes(filters.search) || 
+      call.location?.toLowerCase().includes(filters.search.toLowerCase()) ||
+      call.summary?.toLowerCase().includes(filters.search.toLowerCase());
+    const matchesStatus = !filters.status || filters.status === 'all' || call.status === filters.status;
+    const matchesType = !filters.type || filters.type === 'all' || call.type === filters.type;
+    const matchesDisposition = !filters.disposition || filters.disposition === 'all' || call.disposition === filters.disposition;
     
-    return matchesSearch && matchesStatus && matchesType;
+    const matchesDateRange = !filters.dateRange?.from || (
+      call.createdAt && isWithinInterval(new Date(call.createdAt), {
+        start: filters.dateRange.from,
+        end: filters.dateRange.to || filters.dateRange.from,
+      })
+    );
+    
+    return matchesSearch && matchesStatus && matchesType && matchesDisposition && matchesDateRange;
   });
 
   if (isLoading || statsLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <RefreshCw className="w-6 h-6 animate-spin text-blue-500" />
-        <span className="ml-2 text-gray-600 dark:text-gray-400">Loading call log...</span>
-      </div>
-    );
+    return <CallLogPageSkeleton />;
   }
 
   return (
@@ -181,72 +240,14 @@ export default function CallLogPage() {
         </Card>
       </div>
 
-      {/* Compact Filters */}
-      <Card>
-        <CardHeader className="p-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-medium">Filters</CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              data-testid="button-toggle-filters"
-            >
-              {showFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </Button>
-          </div>
-        </CardHeader>
-        {showFilters && (
-          <CardContent className="p-3 pt-0">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search..."
-                  className="pl-8 h-9 text-sm"
-                  value={filters.search}
-                  onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                  data-testid="input-search-calls"
-                />
-              </div>
-              
-              <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
-                <SelectTrigger className="h-9" data-testid="select-status-filter">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="missed">Missed</SelectItem>
-                  <SelectItem value="busy">Busy</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={filters.type} onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}>
-                <SelectTrigger className="h-9" data-testid="select-type-filter">
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="incoming">Incoming</SelectItem>
-                  <SelectItem value="outgoing">Outgoing</SelectItem>
-                  <SelectItem value="inbound">Inbound</SelectItem>
-                  <SelectItem value="outbound">Outbound</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Button variant="outline" size="sm" onClick={() => setFilters({
-                search: '',
-                status: 'all',
-                type: 'all',
-              })} data-testid="button-clear-filters">
-                Clear
-              </Button>
-            </div>
-          </CardContent>
-        )}
-      </Card>
+      {/* Advanced Filters */}
+      <AdvancedFilters
+        filters={filters}
+        onChange={setFilters}
+        config={filterConfig}
+        showFilters={showFilters}
+        onToggle={() => setShowFilters(!showFilters)}
+      />
 
       {/* Compact Table */}
       <Card>
