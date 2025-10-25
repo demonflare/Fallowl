@@ -2074,6 +2074,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Email Routes
+  app.get("/api/emails", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { db } = await import("./db");
+      const { emails } = await import("@shared/schema");
+      const { eq, desc } = await import("drizzle-orm");
+      
+      const userEmails = await db.select().from(emails)
+        .where(eq(emails.userId, userId))
+        .orderBy(desc(emails.createdAt));
+      
+      res.json(userEmails);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/emails", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const validated = insertEmailSchema.parse(req.body);
+      const { db } = await import("./db");
+      const { emails } = await import("@shared/schema");
+      
+      const [email] = await db.insert(emails)
+        .values({ ...validated, userId })
+        .returning();
+      
+      res.json(email);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/emails/:id", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const id = parseInt(req.params.id);
+      const { db } = await import("./db");
+      const { emails } = await import("@shared/schema");
+      const { eq, and } = await import("drizzle-orm");
+      
+      // Validate and sanitize input - exclude immutable fields
+      const validated = insertEmailSchema.partial().parse(req.body);
+      const { userId: _, createdAt: __, updatedAt: ___, ...safeUpdates } = validated;
+      
+      const [updated] = await db.update(emails)
+        .set({ ...safeUpdates, updatedAt: new Date() })
+        .where(and(eq(emails.id, id), eq(emails.userId, userId)))
+        .returning();
+      
+      if (!updated) {
+        return res.status(404).json({ message: "Email not found" });
+      }
+      
+      res.json(updated);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/emails/:id", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const id = parseInt(req.params.id);
+      const { db } = await import("./db");
+      const { emails } = await import("@shared/schema");
+      const { eq, and } = await import("drizzle-orm");
+      
+      await db.delete(emails)
+        .where(and(eq(emails.id, id), eq(emails.userId, userId)));
+      
+      res.json({ message: "Email deleted successfully" });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   // Advanced Recording Management System
   
   // Get recordings with advanced filtering and pagination
