@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -103,7 +103,12 @@ export const contactLists = pgTable("contact_lists", {
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index("contact_lists_user_id_idx").on(table.userId),
+  typeIdx: index("contact_lists_type_idx").on(table.type),
+  statusIdx: index("contact_lists_status_idx").on(table.status),
+  createdAtIdx: index("contact_lists_created_at_idx").on(table.createdAt),
+}));
 
 // Junction table for many-to-many relationship between contacts and lists
 export const contactListMemberships = pgTable("contact_list_memberships", {
@@ -129,7 +134,12 @@ export const contactListMemberships = pgTable("contact_list_memberships", {
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index("contact_list_memberships_user_id_idx").on(table.userId),
+  contactIdIdx: index("contact_list_memberships_contact_id_idx").on(table.contactId),
+  listIdIdx: index("contact_list_memberships_list_id_idx").on(table.listId),
+  contactListIdx: index("contact_list_memberships_contact_list_idx").on(table.contactId, table.listId),
+}));
 
 export const contacts = pgTable("contacts", {
   id: serial("id").primaryKey(),
@@ -179,7 +189,16 @@ export const contacts = pgTable("contacts", {
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index("contacts_user_id_idx").on(table.userId),
+  phoneIdx: index("contacts_phone_idx").on(table.phone),
+  emailIdx: index("contacts_email_idx").on(table.email),
+  createdAtIdx: index("contacts_created_at_idx").on(table.createdAt),
+  lastContactedAtIdx: index("contacts_last_contacted_at_idx").on(table.lastContactedAt),
+  leadStatusIdx: index("contacts_lead_status_idx").on(table.leadStatus),
+  dispositionIdx: index("contacts_disposition_idx").on(table.disposition),
+  userPhoneIdx: index("contacts_user_phone_idx").on(table.userId, table.phone),
+}));
 
 export const calls = pgTable("calls", {
   id: serial("id").primaryKey(),
@@ -245,7 +264,17 @@ export const calls = pgTable("calls", {
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index("calls_user_id_idx").on(table.userId),
+  phoneIdx: index("calls_phone_idx").on(table.phone),
+  contactIdIdx: index("calls_contact_id_idx").on(table.contactId),
+  statusIdx: index("calls_status_idx").on(table.status),
+  typeIdx: index("calls_type_idx").on(table.type),
+  createdAtIdx: index("calls_created_at_idx").on(table.createdAt),
+  sipCallIdIdx: index("calls_sip_call_id_idx").on(table.sipCallId),
+  userStatusIdx: index("calls_user_status_idx").on(table.userId, table.status),
+  userCreatedAtIdx: index("calls_user_created_at_idx").on(table.userId, table.createdAt),
+}));
 
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
@@ -310,7 +339,16 @@ export const messages = pgTable("messages", {
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index("messages_user_id_idx").on(table.userId),
+  phoneIdx: index("messages_phone_idx").on(table.phone),
+  contactIdIdx: index("messages_contact_id_idx").on(table.contactId),
+  threadIdIdx: index("messages_thread_id_idx").on(table.threadId),
+  createdAtIdx: index("messages_created_at_idx").on(table.createdAt),
+  statusIdx: index("messages_status_idx").on(table.status),
+  userPhoneIdx: index("messages_user_phone_idx").on(table.userId, table.phone),
+  userCreatedAtIdx: index("messages_user_created_at_idx").on(table.userId, table.createdAt),
+}));
 
 // SMS Templates for quick messaging
 export const smsTemplates = pgTable("sms_templates", {
@@ -467,7 +505,15 @@ export const recordings = pgTable("recordings", {
   twilioDeletedAt: timestamp("twilio_deleted_at"), // When deleted from Twilio storage
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index("recordings_user_id_idx").on(table.userId),
+  twilioCallSidIdx: index("recordings_twilio_call_sid_idx").on(table.twilioCallSid),
+  statusIdx: index("recordings_status_idx").on(table.status),
+  createdAtIdx: index("recordings_created_at_idx").on(table.createdAt),
+  callIdIdx: index("recordings_call_id_idx").on(table.callId),
+  contactIdIdx: index("recordings_contact_id_idx").on(table.contactId),
+  userCreatedAtIdx: index("recordings_user_created_at_idx").on(table.userId, table.createdAt),
+}));
 
 export const voicemails = pgTable("voicemails", {
   id: serial("id").primaryKey(),
@@ -497,7 +543,12 @@ export const callNotes = pgTable("call_notes", {
   tags: text("tags").array().default([]),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index("call_notes_user_id_idx").on(table.userId),
+  callIdIdx: index("call_notes_call_id_idx").on(table.callId),
+  contactIdIdx: index("call_notes_contact_id_idx").on(table.contactId),
+  createdAtIdx: index("call_notes_created_at_idx").on(table.createdAt),
+}));
 
 export const roles = pgTable("roles", {
   id: serial("id").primaryKey(),

@@ -15,6 +15,15 @@ import { z } from "zod";
 import { wsService } from "./websocketService";
 import { sanitizeUser, sanitizeUsers } from "./dataSanitization";
 import { 
+  apiLimiter, 
+  authLimiter, 
+  strictLimiter, 
+  webhookLimiter, 
+  downloadLimiter,
+  smsLimiter,
+  callLimiter
+} from "./middleware/rateLimiter";
+import { 
   insertUserSchema, insertContactSchema, insertCallSchema, insertMessageSchema, 
   insertRecordingSchema, insertVoicemailSchema, insertSettingSchema,
   insertRoleSchema, insertLoginHistorySchema, insertUserActivitySchema,
@@ -247,8 +256,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
+  // Apply general API rate limiter to all /api routes
+  app.use('/api', apiLimiter);
+
   // Authentication routes
-  app.post("/api/auth/login", async (req, res) => {
+  app.post("/api/auth/login", authLimiter, async (req, res) => {
     try {
       const { email, password } = req.body;
       
@@ -537,7 +549,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/profile/password", requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.put("/api/profile/password", strictLimiter, requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const userId = getUserIdFromRequest(req);
       
@@ -1747,7 +1759,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/messages", checkJwt, async (req, res) => {
+  app.post("/api/messages", smsLimiter, checkJwt, async (req, res) => {
     try {
       // Get authenticated user
       const auth = (req as any).auth;
@@ -2102,7 +2114,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Stream/play recording audio
-  app.get("/api/recordings/:id/play", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/recordings/:id/play", downloadLimiter, checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const userId = getUserIdFromRequest(req);
       const id = parseInt(req.params.id);
@@ -2190,7 +2202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // This prevents CDN URL structure exposure to the frontend
 
   // Download recording
-  app.get("/api/recordings/:id/download", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/recordings/:id/download", downloadLimiter, checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const userId = getUserIdFromRequest(req);
       const id = parseInt(req.params.id);
@@ -3853,7 +3865,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Main Voice webhook endpoint - handles both inbound and outbound calls
-  app.post("/api/twilio/voice", validateTwilioWebhook, async (req, res) => {
+  app.post("/api/twilio/voice", webhookLimiter, validateTwilioWebhook, async (req, res) => {
     try {
       const { From, To, CallSid, Direction, Caller } = req.body;
       
@@ -4632,7 +4644,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Dedicated recording status callback endpoint for automatic BunnyCDN upload
-  app.post("/api/twilio/recording-status", validateTwilioWebhook, async (req, res) => {
+  app.post("/api/twilio/recording-status", webhookLimiter, validateTwilioWebhook, async (req, res) => {
     try {
       const { 
         CallSid,
@@ -4820,7 +4832,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Call status callback endpoint
-  app.post("/api/twilio/status", validateTwilioWebhook, async (req, res) => {
+  app.post("/api/twilio/status", webhookLimiter, validateTwilioWebhook, async (req, res) => {
     try {
       const { 
         CallSid, CallStatus, CallDuration, RecordingUrl,
@@ -5365,7 +5377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Parallel Dialer routes
-  app.post("/api/dialer/parallel-call", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.post("/api/dialer/parallel-call", callLimiter, checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const userId = getUserIdFromRequest(req);
       const { contactId, phone, name, lineId, amdEnabled, amdTimeout = 30, amdSensitivity = 'standard' } = req.body;
