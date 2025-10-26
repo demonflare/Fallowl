@@ -1,0 +1,310 @@
+pm2 logs --lines 0
+[TAILING] Tailing last 100 lines for [all] processes (change the value with --lines option)
+/home/ubuntu/.pm2/pm2.log last 100 lines:
+PM2        | 2025-10-26T19:16:02: PM2 log: App [fallowl:0] exited with code [0] via signal [SIGINT]
+PM2        | 2025-10-26T19:16:02: PM2 log: pid=33369 msg=process killed
+PM2        | 2025-10-26T19:16:02: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:16:02: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:16:12: PM2 log: Stopping app:fallowl id:0
+PM2        | 2025-10-26T19:16:12: PM2 log: App [fallowl:0] exited with code [0] via signal [SIGINT]
+PM2        | 2025-10-26T19:16:12: PM2 log: pid=61525 msg=process killed
+PM2        | 2025-10-26T19:16:12: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:16:12: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:22:51: PM2 log: Stopping app:fallowl id:0
+PM2        | 2025-10-26T19:22:51: PM2 log: pid=61564 msg=failed to kill - retrying in 100ms
+PM2        | 2025-10-26T19:22:51: PM2 log: App [fallowl:0] exited with code [0] via signal [SIGINT]
+PM2        | 2025-10-26T19:22:52: PM2 log: pid=61564 msg=process killed
+PM2        | 2025-10-26T19:22:52: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:22:52: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:27:09: PM2 log: Stopping app:fallowl id:0
+PM2        | 2025-10-26T19:27:09: PM2 log: App [fallowl:0] exited with code [0] via signal [SIGINT]
+PM2        | 2025-10-26T19:27:09: PM2 log: pid=62288 msg=process killed
+PM2        | 2025-10-26T19:27:09: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:27:09: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:29:21: PM2 log: Stopping app:fallowl id:0
+PM2        | 2025-10-26T19:29:21: PM2 log: App [fallowl:0] exited with code [0] via signal [SIGINT]
+PM2        | 2025-10-26T19:29:21: PM2 log: pid=63050 msg=process killed
+PM2        | 2025-10-26T19:29:21: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:29:21: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:29:21: PM2 log: App [fallowl:0] exited with code [1] via signal [SIGINT]
+PM2        | 2025-10-26T19:29:21: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:29:21: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:29:21: PM2 log: App [fallowl:0] exited with code [1] via signal [SIGINT]
+PM2        | 2025-10-26T19:29:21: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:29:21: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] exited with code [1] via signal [SIGINT]
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] exited with code [1] via signal [SIGINT]
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] exited with code [1] via signal [SIGINT]
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] exited with code [1] via signal [SIGINT]
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] exited with code [1] via signal [SIGINT]
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] exited with code [1] via signal [SIGINT]
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] exited with code [1] via signal [SIGINT]
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] exited with code [1] via signal [SIGINT]
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] exited with code [1] via signal [SIGINT]
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:29:22: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:29:23: PM2 log: App [fallowl:0] exited with code [1] via signal [SIGINT]
+PM2        | 2025-10-26T19:29:23: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:29:23: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:29:23: PM2 log: App [fallowl:0] exited with code [1] via signal [SIGINT]
+PM2        | 2025-10-26T19:29:23: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:29:23: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:29:23: PM2 log: App [fallowl:0] exited with code [1] via signal [SIGINT]
+PM2        | 2025-10-26T19:29:23: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:29:23: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:29:23: PM2 log: App [fallowl:0] exited with code [1] via signal [SIGINT]
+PM2        | 2025-10-26T19:29:23: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:29:23: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:29:23: PM2 log: App [fallowl:0] exited with code [1] via signal [SIGINT]
+PM2        | 2025-10-26T19:29:23: PM2 log: Script /home/ubuntu/Fallowl/dist/index.js had too many unstable restarts (16). Stopped. "errored"
+PM2        | 2025-10-26T19:32:11: PM2 log: Stopping app:fallowl id:0
+PM2        | 2025-10-26T19:32:11: PM2 error: app=fallowl id=0 does not have a pid
+PM2        | 2025-10-26T19:32:11: PM2 log: PM2 successfully stopped
+PM2        | 2025-10-26T19:32:11: PM2 log: ===============================================================================
+PM2        | 2025-10-26T19:32:11: PM2 log: --- New PM2 Daemon started ----------------------------------------------------
+PM2        | 2025-10-26T19:32:11: PM2 log: Time                 : Sun Oct 26 2025 19:32:11 GMT+0000 (Coordinated Universal Time)
+PM2        | 2025-10-26T19:32:11: PM2 log: PM2 version          : 6.0.13
+PM2        | 2025-10-26T19:32:11: PM2 log: Node.js version      : 20.19.5
+PM2        | 2025-10-26T19:32:11: PM2 log: Current arch         : x64
+PM2        | 2025-10-26T19:32:11: PM2 log: PM2 home             : /home/ubuntu/.pm2
+PM2        | 2025-10-26T19:32:11: PM2 log: PM2 PID file         : /home/ubuntu/.pm2/pm2.pid
+PM2        | 2025-10-26T19:32:11: PM2 log: RPC socket file      : /home/ubuntu/.pm2/rpc.sock
+PM2        | 2025-10-26T19:32:11: PM2 log: BUS socket file      : /home/ubuntu/.pm2/pub.sock
+PM2        | 2025-10-26T19:32:11: PM2 log: Application log path : /home/ubuntu/.pm2/logs
+PM2        | 2025-10-26T19:32:11: PM2 log: Worker Interval      : 30000
+PM2        | 2025-10-26T19:32:11: PM2 log: Process dump file    : /home/ubuntu/.pm2/dump.pm2
+PM2        | 2025-10-26T19:32:11: PM2 log: Concurrent actions   : 2
+PM2        | 2025-10-26T19:32:11: PM2 log: SIGTERM timeout      : 1600
+PM2        | 2025-10-26T19:32:11: PM2 log: Runtime Binary       : /home/ubuntu/.nvm/versions/node/v20.19.5/bin/node
+PM2        | 2025-10-26T19:32:11: PM2 log: ===============================================================================
+PM2        | 2025-10-26T19:32:12: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:32:12: PM2 log: App [fallowl:0] online
+PM2        | 2025-10-26T19:36:45: PM2 log: Stopping app:fallowl id:0
+PM2        | 2025-10-26T19:36:46: PM2 log: pid=64575 msg=failed to kill - retrying in 100ms
+PM2        | 2025-10-26T19:36:46: PM2 log: App [fallowl:0] exited with code [0] via signal [SIGINT]
+PM2        | 2025-10-26T19:36:46: PM2 log: pid=64575 msg=process killed
+PM2        | 2025-10-26T19:36:46: PM2 log: App [fallowl:0] starting in -fork mode-
+PM2        | 2025-10-26T19:36:46: PM2 log: App [fallowl:0] online
+
+/home/ubuntu/.pm2/logs/fallowl-error.log last 100 lines:
+0|fallowl  |     at Object.injectModules (/home/ubuntu/.nvm/versions/node/v20.19.5/lib/node_modules/pm2/lib/ProcessUtils.js:14:25)
+0|fallowl  |     at Object.<anonymous> (/home/ubuntu/.nvm/versions/node/v20.19.5/lib/node_modules/pm2/lib/ProcessContainerFork.js:9:14)
+0|fallowl  |     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+0|fallowl  |     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+0|fallowl  |     at Module.load (node:internal/modules/cjs/loader:1266:32)
+0|fallowl  |     at Module._load (node:internal/modules/cjs/loader:1091:12)
+0|fallowl  |     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+0|fallowl  |     at node:internal/main/run_main_module:28:49
+0|fallowl  | SyntaxError: "undefined" is not valid JSON
+0|fallowl  |     at JSON.parse (<anonymous>)
+0|fallowl  |     at Object.injectModules (/home/ubuntu/.nvm/versions/node/v20.19.5/lib/node_modules/pm2/lib/ProcessUtils.js:14:25)
+0|fallowl  |     at Object.<anonymous> (/home/ubuntu/.nvm/versions/node/v20.19.5/lib/node_modules/pm2/lib/ProcessContainerFork.js:9:14)
+0|fallowl  |     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+0|fallowl  |     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+0|fallowl  |     at Module.load (node:internal/modules/cjs/loader:1266:32)
+0|fallowl  |     at Module._load (node:internal/modules/cjs/loader:1091:12)
+0|fallowl  |     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+0|fallowl  |     at node:internal/main/run_main_module:28:49
+0|fallowl  | SyntaxError: "undefined" is not valid JSON
+0|fallowl  |     at JSON.parse (<anonymous>)
+0|fallowl  |     at Object.injectModules (/home/ubuntu/.nvm/versions/node/v20.19.5/lib/node_modules/pm2/lib/ProcessUtils.js:14:25)
+0|fallowl  |     at Object.<anonymous> (/home/ubuntu/.nvm/versions/node/v20.19.5/lib/node_modules/pm2/lib/ProcessContainerFork.js:9:14)
+0|fallowl  |     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+0|fallowl  |     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+0|fallowl  |     at Module.load (node:internal/modules/cjs/loader:1266:32)
+0|fallowl  |     at Module._load (node:internal/modules/cjs/loader:1091:12)
+0|fallowl  |     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+0|fallowl  |     at node:internal/main/run_main_module:28:49
+0|fallowl  | SyntaxError: "undefined" is not valid JSON
+0|fallowl  |     at JSON.parse (<anonymous>)
+0|fallowl  |     at Object.injectModules (/home/ubuntu/.nvm/versions/node/v20.19.5/lib/node_modules/pm2/lib/ProcessUtils.js:14:25)
+0|fallowl  |     at Object.<anonymous> (/home/ubuntu/.nvm/versions/node/v20.19.5/lib/node_modules/pm2/lib/ProcessContainerFork.js:9:14)
+0|fallowl  |     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+0|fallowl  |     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+0|fallowl  |     at Module.load (node:internal/modules/cjs/loader:1266:32)
+0|fallowl  |     at Module._load (node:internal/modules/cjs/loader:1091:12)
+0|fallowl  |     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+0|fallowl  |     at node:internal/main/run_main_module:28:49
+0|fallowl  | SyntaxError: "undefined" is not valid JSON
+0|fallowl  |     at JSON.parse (<anonymous>)
+0|fallowl  |     at Object.injectModules (/home/ubuntu/.nvm/versions/node/v20.19.5/lib/node_modules/pm2/lib/ProcessUtils.js:14:25)
+0|fallowl  |     at Object.<anonymous> (/home/ubuntu/.nvm/versions/node/v20.19.5/lib/node_modules/pm2/lib/ProcessContainerFork.js:9:14)
+0|fallowl  |     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+0|fallowl  |     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+0|fallowl  |     at Module.load (node:internal/modules/cjs/loader:1266:32)
+0|fallowl  |     at Module._load (node:internal/modules/cjs/loader:1091:12)
+0|fallowl  |     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+0|fallowl  |     at node:internal/main/run_main_module:28:49
+0|fallowl  | SyntaxError: "undefined" is not valid JSON
+0|fallowl  |     at JSON.parse (<anonymous>)
+0|fallowl  |     at Object.injectModules (/home/ubuntu/.nvm/versions/node/v20.19.5/lib/node_modules/pm2/lib/ProcessUtils.js:14:25)
+0|fallowl  |     at Object.<anonymous> (/home/ubuntu/.nvm/versions/node/v20.19.5/lib/node_modules/pm2/lib/ProcessContainerFork.js:9:14)
+0|fallowl  |     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+0|fallowl  |     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+0|fallowl  |     at Module.load (node:internal/modules/cjs/loader:1266:32)
+0|fallowl  |     at Module._load (node:internal/modules/cjs/loader:1091:12)
+0|fallowl  |     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+0|fallowl  |     at node:internal/main/run_main_module:28:49
+0|fallowl  | SyntaxError: "undefined" is not valid JSON
+0|fallowl  |     at JSON.parse (<anonymous>)
+0|fallowl  |     at Object.injectModules (/home/ubuntu/.nvm/versions/node/v20.19.5/lib/node_modules/pm2/lib/ProcessUtils.js:14:25)
+0|fallowl  |     at Object.<anonymous> (/home/ubuntu/.nvm/versions/node/v20.19.5/lib/node_modules/pm2/lib/ProcessContainerFork.js:9:14)
+0|fallowl  |     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+0|fallowl  |     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+0|fallowl  |     at Module.load (node:internal/modules/cjs/loader:1266:32)
+0|fallowl  |     at Module._load (node:internal/modules/cjs/loader:1091:12)
+0|fallowl  |     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+0|fallowl  |     at node:internal/main/run_main_module:28:49
+0|fallowl  | SyntaxError: "undefined" is not valid JSON
+0|fallowl  |     at JSON.parse (<anonymous>)
+0|fallowl  |     at Object.injectModules (/home/ubuntu/.nvm/versions/node/v20.19.5/lib/node_modules/pm2/lib/ProcessUtils.js:14:25)
+0|fallowl  |     at Object.<anonymous> (/home/ubuntu/.nvm/versions/node/v20.19.5/lib/node_modules/pm2/lib/ProcessContainerFork.js:9:14)
+0|fallowl  |     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+0|fallowl  |     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+0|fallowl  |     at Module.load (node:internal/modules/cjs/loader:1266:32)
+0|fallowl  |     at Module._load (node:internal/modules/cjs/loader:1091:12)
+0|fallowl  |     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+0|fallowl  |     at node:internal/main/run_main_module:28:49
+0|fallowl  | SyntaxError: "undefined" is not valid JSON
+0|fallowl  |     at JSON.parse (<anonymous>)
+0|fallowl  |     at Object.injectModules (/home/ubuntu/.nvm/versions/node/v20.19.5/lib/node_modules/pm2/lib/ProcessUtils.js:14:25)
+0|fallowl  |     at Object.<anonymous> (/home/ubuntu/.nvm/versions/node/v20.19.5/lib/node_modules/pm2/lib/ProcessContainerFork.js:9:14)
+0|fallowl  |     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+0|fallowl  |     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+0|fallowl  |     at Module.load (node:internal/modules/cjs/loader:1266:32)
+0|fallowl  |     at Module._load (node:internal/modules/cjs/loader:1091:12)
+0|fallowl  |     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+0|fallowl  |     at node:internal/main/run_main_module:28:49
+0|fallowl  | ❌ Invalid Twilio webhook signature for user: 27
+0|fallowl  | ❌ URL: http://app.fallowl.com/api/twilio/voice?token=1761507544507%3A27%3A8ff5297330e26f6e7d2d3c0ee1030cf60b1d246ff2162d899423d83b357a0b2e
+0|fallowl  | ❌ Signature: Sx3hiVxvZCJrKCRypVFM...
+0|fallowl  | ❌ Invalid Twilio webhook signature for user: 27
+0|fallowl  | ❌ URL: http://app.fallowl.com/api/twilio/status?token=1761507544507:27:8ff5297330e26f6e7d2d3c0ee1030cf60b1d246ff2162d899423d83b357a0b2e
+0|fallowl  | ❌ Signature: GWYHF7ybSbpc3KeRDrHO...
+0|fallowl  | ❌ Invalid Twilio webhook signature for user: 27
+0|fallowl  | ❌ URL: http://app.fallowl.com/api/twilio/voice?token=1761507544507%3A27%3A8ff5297330e26f6e7d2d3c0ee1030cf60b1d246ff2162d899423d83b357a0b2e
+0|fallowl  | ❌ Signature: dpfQITmcY5ZNsjCJt4Ah...
+0|fallowl  | ❌ Invalid Twilio webhook signature for user: 27
+0|fallowl  | ❌ URL: http://app.fallowl.com/api/twilio/status?token=1761507544507:27:8ff5297330e26f6e7d2d3c0ee1030cf60b1d246ff2162d899423d83b357a0b2e
+0|fallowl  | ❌ Signature: pitIwGd6pd04iXXqFKzl...
+
+/home/ubuntu/.pm2/logs/fallowl-out.log last 100 lines:
+0|fallowl  |    REPLIT_DEV_DOMAIN: not set
+0|fallowl  | ⏭️  Skipping webhook verification in local development environment
+0|fallowl  | ✅ WebSocket server initialized on path /ws
+0|fallowl  | 7:32:34 PM [express] serving on port 5000
+0|fallowl  | 
+0|fallowl  | > rest-express@1.0.0 start
+0|fallowl  | > NODE_ENV=production node dist/index.js
+0|fallowl  | 
+0|fallowl  | [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
+0|fallowl  | ✓ Production CORS origins configured: [ 'https://app.fallowl.com' ]
+0|fallowl  | ✅ SMS templates seeded successfully
+0|fallowl  | ✅ SMS campaigns seeded successfully
+0|fallowl  | ✅ Lead sources already exist, skipping seed
+0|fallowl  | ✅ Lead statuses already exist, skipping seed
+0|fallowl  | ✅ Lead campaigns seeded successfully
+0|fallowl  | ✅ Lead data seeded successfully
+0|fallowl  | 🌱 Seeding demo contacts...
+0|fallowl  | ✅ Demo contacts already exist, skipping seed
+0|fallowl  | 🌱 Seeding contact lists...
+0|fallowl  | ✅ Contact lists seeded successfully
+0|fallowl  | 
+0|fallowl  | 🔍 Starting automatic Twilio webhook verification...
+0|fallowl  | 📍 URL Configuration:
+0|fallowl  |    Environment: Development
+0|fallowl  |    Base URL: http://localhost:5000
+0|fallowl  |    Voice URL: http://localhost:5000/api/twilio/voice
+0|fallowl  |    Status Callback: http://localhost:5000/api/twilio/status
+0|fallowl  |    SMS URL: http://localhost:5000/api/twilio/sms
+0|fallowl  |    REPLIT_DOMAINS: not set
+0|fallowl  |    REPLIT_DEV_DOMAIN: not set
+0|fallowl  | ⏭️  Skipping webhook verification in local development environment
+0|fallowl  | ✅ WebSocket server initialized on path /ws
+0|fallowl  | 7:37:09 PM [express] serving on port 5000
+0|fallowl  | Auth0 token claims: {
+0|fallowl  |   sub: 'auth0|68dd901b5af9c95dc629e5f7',
+0|fallowl  |   email: '',
+0|fallowl  |   username: 'user_68dd901b5af9c95dc629e5f7',
+0|fallowl  |   name: undefined,
+0|fallowl  |   nickname: undefined,
+0|fallowl  |   given_name: undefined,
+0|fallowl  |   family_name: undefined
+0|fallowl  | }
+0|fallowl  | 📼 Fetching recordings for user 27: page=1, limit=50, filters={}
+0|fallowl  | 🔌 New WebSocket connection
+0|fallowl  | ✅ WebSocket client registered for user 27
+0|fallowl  | ✅ Created and cached Twilio client for user 27
+0|fallowl  | 7:39:03 PM [express] GET /api/messages 200 in 1572ms :: []
+0|fallowl  | 7:39:03 PM [express] GET /api/contacts 200 in 1569ms :: [{"id":81,"userId":27,"name":"Aimee Arevalo","phone":"+17865014403","email":"aimee.arevalo@unifiedhc.com","alternatePhone":"+13059048758","company":"Unified Women's…
+0|fallowl  | 🔌 New WebSocket connection
+0|fallowl  | ✅ WebSocket client registered for user 27
+0|fallowl  | 7:39:03 PM [express] GET /api/calls 200 in 1911ms :: [{"id":608,"userId":27,"contactId":41,"phone":"+9181497745412","type":"outgoing","status":"initiated","duration":0,"recordingUrl":null,"callQuality":null,"cost":null,"…
+0|fallowl  | 7:39:03 PM [express] GET /api/voicemails 200 in 391ms :: []
+0|fallowl  | Auth0 token claims: {
+0|fallowl  |   sub: 'auth0|68dd901b5af9c95dc629e5f7',
+0|fallowl  |   email: '',
+0|fallowl  |   username: 'user_68dd901b5af9c95dc629e5f7',
+0|fallowl  |   name: undefined,
+0|fallowl  |   nickname: undefined,
+0|fallowl  |   given_name: undefined,
+0|fallowl  |   family_name: undefined
+0|fallowl  | }
+0|fallowl  | ✅ Successfully fetched 50 recordings for user 27 (total: 56)
+0|fallowl  | 7:39:03 PM [express] GET /api/recordings 200 in 2104ms :: {"recordings":[{"id":538,"twilioRecordingSid":"RE98bf551a34da26180b598067df78a856","twilioCallSid":"CA226e6afacbebb789bff9a530d842f080","twilioAccountSid":"AC9d0a…
+0|fallowl  | 7:39:04 PM [express] GET /api/twilio/status 200 in 2311ms :: {"isConfigured":true,"hasCredentials":true,"phoneNumber":"+16402320813","connection":{"isConnected":true,"lastCheck":"2025-10-26T19:39:04.022Z","accountStatus"…
+0|fallowl  | 7:39:04 PM [express] GET /api/user/twilio/status 200 in 606ms :: {"userId":27,"isConfigured":true,"hasCredentials":true,"phoneNumber":"+16402320813","hasTwimlApp":true,"hasApiKey":true,"status":"ready","isValid":true,"la…
+0|fallowl  | Auth0 token claims: {
+0|fallowl  |   sub: 'auth0|68dd901b5af9c95dc629e5f7',
+0|fallowl  |   email: '',
+0|fallowl  |   username: 'user_68dd901b5af9c95dc629e5f7',
+0|fallowl  |   name: undefined,
+0|fallowl  |   nickname: undefined,
+0|fallowl  |   given_name: undefined,
+0|fallowl  |   family_name: undefined
+0|fallowl  | }
+0|fallowl  | 🔄 Updating TwiML App webhooks for user 27...
+0|fallowl  |   Current Voice URL: https://app.fallowl.com/api/twilio/voice?token=1761321347907%3A27%3A9261719334c13a366feb4de5d52acdbd3e98d00162a3ac6bade76da22d6bef26
+0|fallowl  |   Expected Voice URL: https://app.fallowl.com/api/twilio/voice?token=1761507544507%3A27%3A8ff5297330e26f6e7d2d3c0ee1030cf60b1d246ff2162d899423d83b357a0b2e
+0|fallowl  |   Current Status URL: https://app.fallowl.com/api/twilio/status?token=1761321347907%3A27%3A9261719334c13a366feb4de5d52acdbd3e98d00162a3ac6bade76da22d6bef26
+0|fallowl  |   Expected Status URL: https://app.fallowl.com/api/twilio/status?token=1761507544507%3A27%3A8ff5297330e26f6e7d2d3c0ee1030cf60b1d246ff2162d899423d83b357a0b2e
+0|fallowl  | ✅ TwiML App webhooks updated for user 27
+0|fallowl  | ✅ Generated access token for user 27, identity: user_68dd901b5af9c95dc629e5f7
+0|fallowl  | ✅ Generated access token for user 27
+0|fallowl  | 7:39:04 PM [express] GET /api/twilio/access-token 200 in 665ms :: {"accessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImN0eSI6InR3aWxpby1mcGE7dj0xIn0.eyJqdGkiOiJTS2UwY2ZjNGE0ZGVjZTU2NGFkMjJlNjQ3MzIwMzNlY2UzLTE3NjE1MDc1ND…
+0|fallowl  | 7:39:04 PM [express] POST /api/auth/auth0-session 200 in 3110ms :: {"message":"Session created","user":{"id":27,"username":"user_68dd901b5af9c95dc629e5f7","email":"","role":"user","status":"active","firstName":"","lastNa…
+0|fallowl  | 7:39:06 PM [express] POST /api/auth/auth0-session 200 in 1721ms :: {"message":"Session created","user":{"id":27,"username":"user_68dd901b5af9c95dc629e5f7","email":"","role":"user","status":"active","firstName":"","lastNa…
+0|fallowl  | 7:39:06 PM [express] POST /api/auth/auth0-session 200 in 2110ms :: {"message":"Session created","user":{"id":27,"username":"user_68dd901b5af9c95dc629e5f7","email":"","role":"user","status":"active","firstName":"","lastNa…
+0|fallowl  | 7:39:20 PM [express] GET /api/lists 200 in 957ms :: [{"id":513,"userId":27,"name":"Baramundi","description":"Imported contacts from CSV","color":"#3B82F6","icon":"Users","type":"imported","category":"general","smartCrite…
+0|fallowl  | 7:39:27 PM [express] POST /api/twilio/voice 403 in 192ms
+0|fallowl  | 7:39:32 PM [express] POST /api/twilio/status 403 in 190ms
+0|fallowl  | 📨 Received WebSocket message: { type: 'ping' }
+0|fallowl  | 📨 Received WebSocket message: { type: 'ping' }
+0|fallowl  | 7:39:35 PM [express] GET /api/user/twilio/status 200 in 592ms :: {"userId":27,"isConfigured":true,"hasCredentials":true,"phoneNumber":"+16402320813","hasTwimlApp":true,"hasApiKey":true,"status":"ready","isValid":true,"la…
+0|fallowl  | 7:39:41 PM [express] GET /api/twilio/status 200 in 405ms :: {"isConfigured":true,"hasCredentials":true,"phoneNumber":"+16402320813","connection":{"isConnected":true,"lastCheck":"2025-10-26T19:39:41.836Z","accountStatus":…
+0|fallowl  | 7:39:42 PM [express] GET /api/contacts 304 in 1149ms :: [{"id":81,"userId":27,"name":"Aimee Arevalo","phone":"+17865014403","email":"aimee.arevalo@unifiedhc.com","alternatePhone":"+13059048758","company":"Unified Women's…
+0|fallowl  | 7:39:49 PM [express] POST /api/twilio/voice 403 in 191ms
+0|fallowl  | 7:39:54 PM [express] POST /api/twilio/status 403 in 191ms
+0|fallowl  | 📨 Received WebSocket message: { type: 'ping' }
+0|fallowl  | 📨 Received WebSocket message: { type: 'ping' }
+0|fallowl  | 📨 Received WebSocket message: { type: 'ping' }
+0|fallowl  | 📨 Received WebSocket message: { type: 'ping' }
+
+0|fallowl  | 📨 Received WebSocket message: { type: 'ping' }
+0|fallowl  | 📨 Received WebSocket message: { type: 'ping' }
