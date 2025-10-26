@@ -10,11 +10,21 @@
 export function getBaseUrl(): string {
   // Custom BASE_URL (for AWS, custom deployments, etc.)
   if (process.env.BASE_URL) {
-    const url = process.env.BASE_URL.trim();
+    let url = process.env.BASE_URL.trim();
+    
+    // Remove trailing slashes
+    url = url.replace(/\/+$/, '');
+    
     // Ensure HTTPS in production (if not localhost)
-    if (!url.includes('localhost') && !url.startsWith('https://')) {
-      return `https://${url.replace(/^http:\/\//, '')}`;
+    if (!url.includes('localhost') && !url.includes('127.0.0.1')) {
+      if (!url.startsWith('https://') && !url.startsWith('http://')) {
+        url = `https://${url}`;
+      } else if (url.startsWith('http://')) {
+        url = url.replace(/^http:\/\//, 'https://');
+        console.warn('⚠️ BASE_URL was HTTP, converted to HTTPS for production:', url);
+      }
     }
+    
     return url;
   }
   

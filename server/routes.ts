@@ -110,9 +110,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const validateTwilioWebhook = async (req: any, res: any, next: any) => {
     try {
       const signature = req.headers['x-twilio-signature'] || '';
-      // On Replit/behind proxies, always use https for external webhook URLs
-      const protocol = process.env.REPLIT_DOMAINS ? 'https' : req.protocol;
-      const url = `${protocol}://${req.get('host')}${req.originalUrl}`;
+      
+      // Determine protocol: always use HTTPS in production, except for localhost
+      let protocol = req.protocol;
+      const host = req.get('host') || '';
+      
+      if (!host.includes('localhost') && !host.includes('127.0.0.1')) {
+        // Production environment - always use HTTPS
+        protocol = 'https';
+      }
+      
+      const url = `${protocol}://${host}${req.originalUrl}`;
       
       // Get the call/message SID to determine which user's credentials to use
       const { CallSid, MessageSid, From, To } = req.body;
