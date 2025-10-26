@@ -32,8 +32,7 @@ import {
   insertContactListSchema, insertContactListMembershipSchema,
   insertLeadSourceSchema, insertLeadStatusSchema, insertLeadCampaignSchema,
   insertLeadSchema, insertLeadActivitySchema, insertLeadTaskSchema,
-  insertLeadScoringSchema, insertLeadNurturingSchema,
-  insertScheduledCallSchema, insertCallScriptSchema, insertCallDispositionSchema, insertEmailSchema
+  insertLeadScoringSchema, insertLeadNurturingSchema
 } from "@shared/schema";
 
 // Auth0 JWT validation middleware

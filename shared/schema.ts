@@ -241,10 +241,6 @@ export const calls = pgTable("calls", {
   callPurpose: text("call_purpose"), // sales, support, follow-up, cold-call
   outcome: text("outcome"), // successful, needs-followup, no-interest, voicemail, human, machine
   
-  // Phase 3: Link to new disposition and script systems
-  dispositionId: integer("disposition_id").references(() => callDispositions.id),
-  scriptId: integer("script_id").references(() => callScripts.id),
-  
   // AI and automation
   transcript: text("transcript"), // Call transcript
   summary: text("summary"), // AI-generated call summary
@@ -280,199 +276,6 @@ export const calls = pgTable("calls", {
   userCreatedAtIdx: index("calls_user_created_at_idx").on(table.userId, table.createdAt),
 }));
 
-// Call Scripts - Predefined scripts for calls
-export const callScripts = pgTable("call_scripts", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  name: text("name").notNull(),
-  description: text("description"),
-  
-  // Script Content
-  content: text("content").notNull(), // Main script text
-  scriptSections: jsonb("script_sections").default([]), // Structured sections (intro, pitch, objections, closing)
-  
-  // Script Type and Category
-  type: text("type").default("general"), // general, sales, support, follow-up, demo
-  category: text("category").default("custom"), // custom, template, imported
-  
-  // Usage and Performance
-  usageCount: integer("usage_count").default(0),
-  successRate: decimal("success_rate", { precision: 5, scale: 2 }).default("0.00"),
-  averageDuration: integer("average_duration"), // Average call duration in seconds
-  
-  // Organization
-  isActive: boolean("is_active").default(true),
-  isDefault: boolean("is_default").default(false), // Default script for a type
-  tags: text("tags").array().default([]),
-  priority: integer("priority").default(0), // For ordering
-  
-  // Version Control
-  version: integer("version").default(1),
-  parentScriptId: integer("parent_script_id").references(() => callScripts.id),
-  
-  // Metadata
-  customFields: jsonb("custom_fields").default({}),
-  
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  userIdIdx: index("call_scripts_user_id_idx").on(table.userId),
-  typeIdx: index("call_scripts_type_idx").on(table.type),
-  activeIdx: index("call_scripts_active_idx").on(table.isActive),
-}));
-
-// Call Dispositions - Custom call outcomes and results
-export const callDispositions = pgTable("call_dispositions", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  name: text("name").notNull(),
-  code: text("code").notNull(), // Short code like "SALE", "NI", "CB"
-  description: text("description"),
-  
-  // Classification
-  category: text("category").default("outcome"), // outcome, status, action-required
-  dispositionType: text("disposition_type").default("final"), // final, interim, follow-up-required
-  
-  // Behavior
-  requiresFollowUp: boolean("requires_follow_up").default(false),
-  autoScheduleFollowUp: boolean("auto_schedule_follow_up").default(false),
-  followUpDays: integer("follow_up_days"), // Days until follow-up
-  
-  // Status Indicators
-  isPositive: boolean("is_positive").default(false), // Successful outcome
-  isNegative: boolean("is_negative").default(false), // Unsuccessful outcome
-  isNeutral: boolean("is_neutral").default(true),
-  
-  // System Fields
-  isActive: boolean("is_active").default(true),
-  isSystem: boolean("is_system").default(false), // System-defined vs user-defined
-  usageCount: integer("usage_count").default(0),
-  
-  // Display
-  color: text("color").default("#6B7280"), // Hex color for UI
-  icon: text("icon").default("Phone"), // Lucide icon name
-  priority: integer("priority").default(0), // For ordering
-  
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  userIdIdx: index("call_dispositions_user_id_idx").on(table.userId),
-  codeIdx: index("call_dispositions_code_idx").on(table.code),
-  activeIdx: index("call_dispositions_active_idx").on(table.isActive),
-  uniqueUserCode: uniqueIndex("call_dispositions_user_code_unique").on(table.userId, table.code),
-  uniqueUserName: uniqueIndex("call_dispositions_user_name_unique").on(table.userId, table.name),
-}));
-
-// Scheduled Calls - For call scheduling and automation
-export const scheduledCalls = pgTable("scheduled_calls", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  contactId: integer("contact_id").references(() => contacts.id),
-  phone: text("phone").notNull(),
-  
-  // Schedule Information
-  scheduledFor: timestamp("scheduled_for").notNull(),
-  timezone: text("timezone").default("America/New_York"),
-  
-  // Recurrence Options
-  isRecurring: boolean("is_recurring").default(false),
-  recurrenceRule: text("recurrence_rule"), // RRULE format (daily, weekly, monthly)
-  recurrenceEndDate: timestamp("recurrence_end_date"),
-  recurrenceCount: integer("recurrence_count"), // Number of occurrences
-  
-  // Call Details
-  scriptId: integer("script_id").references(() => callScripts.id),
-  notes: text("notes"),
-  purpose: text("purpose"), // follow-up, sales-call, demo, support, check-in
-  priority: text("priority").default("normal"), // high, normal, low
-  
-  // Status and Tracking
-  status: text("status").default("pending"), // pending, completed, cancelled, failed, rescheduled
-  actualCallId: integer("actual_call_id").references(() => calls.id), // Links to actual call when made
-  completedAt: timestamp("completed_at"),
-  cancelledAt: timestamp("cancelled_at"),
-  cancelReason: text("cancel_reason"),
-  
-  // Reminders and Notifications
-  reminderEnabled: boolean("reminder_enabled").default(true),
-  reminderMinutes: integer("reminder_minutes").default(15), // Minutes before call
-  reminderSent: boolean("reminder_sent").default(false),
-  
-  // Metadata
-  tags: text("tags").array().default([]),
-  customFields: jsonb("custom_fields").default({}),
-  
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  userIdIdx: index("scheduled_calls_user_id_idx").on(table.userId),
-  contactIdIdx: index("scheduled_calls_contact_id_idx").on(table.contactId),
-  scheduledForIdx: index("scheduled_calls_scheduled_for_idx").on(table.scheduledFor),
-  statusIdx: index("scheduled_calls_status_idx").on(table.status),
-  userScheduledIdx: index("scheduled_calls_user_scheduled_idx").on(table.userId, table.scheduledFor),
-}));
-
-// Emails - Email integration for CRM
-export const emails = pgTable("emails", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  contactId: integer("contact_id").references(() => contacts.id),
-  
-  // Email Details
-  from: text("from").notNull(),
-  to: text("to").array().notNull(),
-  cc: text("cc").array().default([]),
-  bcc: text("bcc").array().default([]),
-  subject: text("subject").notNull(),
-  body: text("body").notNull(),
-  bodyHtml: text("body_html"),
-  
-  // Thread Management
-  threadId: text("thread_id"), // Email thread/conversation ID
-  inReplyTo: text("in_reply_to"), // Message-ID of parent email
-  references: text("references").array().default([]), // All parent message IDs
-  
-  // Status and Direction
-  direction: text("direction").notNull(), // inbound, outbound
-  status: text("status").default("draft"), // draft, sent, delivered, failed, bounced, opened
-  
-  // Attachments
-  attachments: jsonb("attachments").default([]), // [{name, url, size, type}]
-  hasAttachments: boolean("has_attachments").default(false),
-  
-  // Tracking
-  isRead: boolean("is_read").default(false),
-  isStarred: boolean("is_starred").default(false),
-  isImportant: boolean("is_important").default(false),
-  readAt: timestamp("read_at"),
-  sentAt: timestamp("sent_at"),
-  deliveredAt: timestamp("delivered_at"),
-  openedAt: timestamp("opened_at"),
-  clickedAt: timestamp("clicked_at"),
-  
-  // Integration
-  messageId: text("message_id").unique(), // RFC 822 Message-ID
-  provider: text("provider"), // gmail, outlook, smtp
-  providerMessageId: text("provider_message_id"),
-  
-  // Organization
-  folder: text("folder").default("inbox"), // inbox, sent, drafts, trash, archive
-  labels: text("labels").array().default([]),
-  tags: text("tags").array().default([]),
-  
-  // Metadata
-  customFields: jsonb("custom_fields").default({}),
-  
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  userIdIdx: index("emails_user_id_idx").on(table.userId),
-  contactIdIdx: index("emails_contact_id_idx").on(table.contactId),
-  threadIdIdx: index("emails_thread_id_idx").on(table.threadId),
-  statusIdx: index("emails_status_idx").on(table.status),
-  sentAtIdx: index("emails_sent_at_idx").on(table.sentAt),
-}));
-
 // Calendar Events - Full calendar functionality
 export const calendarEvents = pgTable("calendar_events", {
   id: serial("id").primaryKey(),
@@ -503,9 +306,7 @@ export const calendarEvents = pgTable("calendar_events", {
   attendees: jsonb("attendees").default([]), // [{email, name, status}]
   
   // Linked Entities
-  scheduledCallId: integer("scheduled_call_id").references(() => scheduledCalls.id),
   callId: integer("call_id").references(() => calls.id),
-  emailId: integer("email_id").references(() => emails.id),
   
   // Reminders
   reminders: jsonb("reminders").default([]), // [{type, minutes}]
@@ -1193,30 +994,6 @@ export const insertCallSchema = createInsertSchema(calls).omit({
   updatedAt: true,
 });
 
-export const insertScheduledCallSchema = createInsertSchema(scheduledCalls).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertCallScriptSchema = createInsertSchema(callScripts).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertCallDispositionSchema = createInsertSchema(callDispositions).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertEmailSchema = createInsertSchema(emails).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
 export const insertCalendarEventSchema = createInsertSchema(calendarEvents).omit({
   id: true,
   createdAt: true,
@@ -1428,14 +1205,6 @@ export type ContactListMembership = typeof contactListMemberships.$inferSelect;
 export type InsertContactListMembership = z.infer<typeof insertContactListMembershipSchema>;
 
 // Phase 3 Feature Types
-export type ScheduledCall = typeof scheduledCalls.$inferSelect;
-export type InsertScheduledCall = z.infer<typeof insertScheduledCallSchema>;
-export type CallScript = typeof callScripts.$inferSelect;
-export type InsertCallScript = z.infer<typeof insertCallScriptSchema>;
-export type CallDisposition = typeof callDispositions.$inferSelect;
-export type InsertCallDisposition = z.infer<typeof insertCallDispositionSchema>;
-export type Email = typeof emails.$inferSelect;
-export type InsertEmail = z.infer<typeof insertEmailSchema>;
 export type CalendarEvent = typeof calendarEvents.$inferSelect;
 export type InsertCalendarEvent = z.infer<typeof insertCalendarEventSchema>;
 
