@@ -6,17 +6,9 @@ import "./index.css";
 const domain = import.meta.env.VITE_AUTH0_DOMAIN || "auth.fallowl.com";
 const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID || "placeholder";
 
-// Use Replit domain if available, otherwise use window.location.origin
-// This ensures Auth0 redirect works correctly in Replit's environment
-const replitDomains = import.meta.env.VITE_REPLIT_DOMAINS;
-
-// Detect if we're in Replit environment by checking hostname
-const isReplit = window.location.hostname.includes('replit.dev');
-const redirectUri = replitDomains 
-  ? `https://${replitDomains}` 
-  : isReplit 
-    ? `https://${window.location.hostname}`
-    : window.location.origin;
+// Automatically use current domain - this ensures Auth0 redirect works
+// correctly even when Replit changes the domain
+const redirectUri = window.location.origin;
 
 // Don't use Management API audience for user authentication
 // If you have a custom API, set VITE_AUTH0_AUDIENCE in your environment
