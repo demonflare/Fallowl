@@ -2,6 +2,7 @@ import twilio from 'twilio';
 import jwt from 'jsonwebtoken';
 import { storage } from './storage';
 import { generateWebhookToken } from './routes';
+import { getBaseUrl, getUserTwilioWebhookUrls, isProductionUrl } from './utils/urlConfig';
 const { AccessToken } = twilio.jwt;
 const VoiceGrant = AccessToken.VoiceGrant;
 
@@ -86,33 +87,32 @@ class UserTwilioClientCache {
   public async generateAccessToken(userId: number, identity: string, baseUrl?: string): Promise<string> {
     let { credentials } = await this.getTwilioClient(userId);
 
+    // Use centralized base URL if not provided
+    const effectiveBaseUrl = baseUrl || getBaseUrl();
+    
     // Only update webhooks if we have a reliable base URL (not localhost)
-    const shouldUpdateWebhooks = baseUrl && !baseUrl.includes('localhost');
+    const shouldUpdateWebhooks = isProductionUrl(effectiveBaseUrl);
 
     // Auto-create TwiML Application if missing (required for Voice SDK)
     if (!credentials.twimlAppSid) {
-      if (baseUrl) {
-        console.log(`📱 TwiML App SID missing for user ${userId}, auto-creating...`);
+      console.log(`📱 TwiML App SID missing for user ${userId}, auto-creating...`);
+      
+      try {
+        const application = await this.createTwiMLApplication(userId, effectiveBaseUrl);
+        console.log(`✅ Auto-created TwiML Application for user ${userId}: ${application.sid}`);
         
-        try {
-          const application = await this.createTwiMLApplication(userId, baseUrl);
-          console.log(`✅ Auto-created TwiML Application for user ${userId}: ${application.sid}`);
-          
-          // Refresh credentials to get the newly created TwiML App SID
-          this.clearUserCache(userId);
-          const refreshed = await this.getTwilioClient(userId);
-          credentials = refreshed.credentials;
-        } catch (error: any) {
-          console.error(`❌ Failed to auto-create TwiML Application for user ${userId}:`, error.message);
-          throw new Error(`TwiML Application SID is required for Voice SDK. Auto-creation failed: ${error.message}`);
-        }
-      } else {
-        console.warn(`⚠️ No base URL provided, cannot auto-create TwiML App for user ${userId}`);
+        // Refresh credentials to get the newly created TwiML App SID
+        this.clearUserCache(userId);
+        const refreshed = await this.getTwilioClient(userId);
+        credentials = refreshed.credentials;
+      } catch (error: any) {
+        console.error(`❌ Failed to auto-create TwiML Application for user ${userId}:`, error.message);
+        throw new Error(`TwiML Application SID is required for Voice SDK. Auto-creation failed: ${error.message}`);
       }
     } else if (shouldUpdateWebhooks) {
       // Verify and update existing TwiML App webhooks only if we have a reliable base URL
       try {
-        await this.verifyAndUpdateTwiMLWebhooks(userId, baseUrl!);
+        await this.verifyAndUpdateTwiMLWebhooks(userId, effectiveBaseUrl);
       } catch (error: any) {
         console.error(`⚠️ Failed to verify TwiML App webhooks for user ${userId}:`, error.message);
         // Don't fail token generation if webhook update fails
@@ -260,26 +260,25 @@ class UserTwilioClientCache {
       const existingApp = await client.applications(credentials.twimlAppSid).fetch();
       
       const token = generateWebhookToken(userId);
-      const expectedVoiceUrl = `${baseUrl}/api/twilio/voice?token=${encodeURIComponent(token)}`;
-      const expectedStatusUrl = `${baseUrl}/api/twilio/status?token=${encodeURIComponent(token)}`;
+      const webhookUrls = getUserTwilioWebhookUrls(token, baseUrl);
       
       const needsUpdate = 
-        existingApp.voiceUrl !== expectedVoiceUrl ||
-        existingApp.statusCallback !== expectedStatusUrl ||
+        existingApp.voiceUrl !== webhookUrls.voiceUrl ||
+        existingApp.statusCallback !== webhookUrls.statusCallbackUrl ||
         existingApp.voiceMethod !== 'POST' ||
         existingApp.statusCallbackMethod !== 'POST';
 
       if (needsUpdate) {
         console.log(`🔄 Updating TwiML App webhooks for user ${userId}...`);
         console.log(`  Current Voice URL: ${existingApp.voiceUrl}`);
-        console.log(`  Expected Voice URL: ${expectedVoiceUrl}`);
+        console.log(`  Expected Voice URL: ${webhookUrls.voiceUrl}`);
         console.log(`  Current Status URL: ${existingApp.statusCallback}`);
-        console.log(`  Expected Status URL: ${expectedStatusUrl}`);
+        console.log(`  Expected Status URL: ${webhookUrls.statusCallbackUrl}`);
         
         const updatedApp = await client.applications(credentials.twimlAppSid).update({
-          voiceUrl: expectedVoiceUrl,
+          voiceUrl: webhookUrls.voiceUrl,
           voiceMethod: 'POST',
-          statusCallback: expectedStatusUrl,
+          statusCallback: webhookUrls.statusCallbackUrl,
           statusCallbackMethod: 'POST'
         });
 
@@ -303,12 +302,11 @@ class UserTwilioClientCache {
         const existingApp = await client.applications(credentials.twimlAppSid).fetch();
         
         const token = generateWebhookToken(userId);
-        const expectedVoiceUrl = `${baseUrl}/api/twilio/voice?token=${encodeURIComponent(token)}`;
-        const expectedStatusUrl = `${baseUrl}/api/twilio/status?token=${encodeURIComponent(token)}`;
+        const webhookUrls = getUserTwilioWebhookUrls(token, baseUrl);
         
         const needsUpdate = 
-          existingApp.voiceUrl !== expectedVoiceUrl ||
-          existingApp.statusCallback !== expectedStatusUrl;
+          existingApp.voiceUrl !== webhookUrls.voiceUrl ||
+          existingApp.statusCallback !== webhookUrls.statusCallbackUrl;
 
         if (needsUpdate) {
           console.log(`🔄 Existing TwiML App found but needs webhook update for user ${userId}`);
@@ -322,11 +320,13 @@ class UserTwilioClientCache {
     }
 
     const token = generateWebhookToken(userId);
+    const webhookUrls = getUserTwilioWebhookUrls(token, baseUrl);
+    
     const application = await client.applications.create({
       friendlyName: `CRM Dialer WebRTC App - User ${userId}`,
-      voiceUrl: `${baseUrl}/api/twilio/voice?token=${encodeURIComponent(token)}`,
+      voiceUrl: webhookUrls.voiceUrl,
       voiceMethod: 'POST',
-      statusCallback: `${baseUrl}/api/twilio/status?token=${encodeURIComponent(token)}`,
+      statusCallback: webhookUrls.statusCallbackUrl,
       statusCallbackMethod: 'POST'
     });
 

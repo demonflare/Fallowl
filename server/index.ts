@@ -13,6 +13,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { storage } from "./storage";
 import { seedSmsData, seedLeadData, seedContactLists } from "./seedData";
 import { seedDemoContacts } from "./seedContacts";
+import { twilioWebhookVerifier } from "./services/twilioWebhookVerifier";
 
 const app = express();
 
@@ -171,6 +172,13 @@ app.use((req, res, next) => {
     await seedContactLists();
   } catch (error) {
     console.error("Error seeding contact lists:", error);
+  }
+  
+  try {
+    // Automatically verify and update Twilio webhooks on startup
+    await twilioWebhookVerifier.verifyAllWebhooks();
+  } catch (error) {
+    console.error("Error verifying Twilio webhooks:", error);
   }
   
   const server = await registerRoutes(app);

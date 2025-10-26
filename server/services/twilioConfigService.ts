@@ -1,5 +1,6 @@
 import { storage } from '../storage';
 import twilio from 'twilio';
+import { getBaseUrl, getTwilioWebhookUrls, logUrlConfiguration } from '../utils/urlConfig';
 
 export class TwilioConfigService {
   private static instance: TwilioConfigService;
@@ -156,18 +157,17 @@ export class TwilioConfigService {
   }): Promise<{ applicationSid: string; created: boolean }> {
     try {
       const client = twilio(credentials.accountSid, credentials.authToken);
-      const baseUrl = process.env.REPLIT_DOMAINS ? 
-        `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` : 
-        process.env.REPLIT_DEV_DOMAIN ?
-        `https://${process.env.REPLIT_DEV_DOMAIN}` :
-        'http://localhost:5000';
+      const baseUrl = getBaseUrl();
+      const webhookUrls = getTwilioWebhookUrls(baseUrl);
+      
+      logUrlConfiguration();
       
       const webhookConfig = {
         friendlyName: 'DialPax Voice Application',
-        voiceUrl: `${baseUrl}/api/twilio/voice`,
-        voiceMethod: 'POST',
-        statusCallback: `${baseUrl}/api/twilio/status`,
-        statusCallbackMethod: 'POST'
+        voiceUrl: webhookUrls.voiceUrl,
+        voiceMethod: 'POST' as const,
+        statusCallback: webhookUrls.statusCallbackUrl,
+        statusCallbackMethod: 'POST' as const
       };
       
       let applicationSid = credentials.twimlAppSid;
@@ -218,17 +218,14 @@ export class TwilioConfigService {
       }
       
       const phoneNumber = phoneNumbers[0];
-      const baseUrl = process.env.REPLIT_DOMAINS ? 
-        `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` : 
-        process.env.REPLIT_DEV_DOMAIN ?
-        `https://${process.env.REPLIT_DEV_DOMAIN}` :
-        'http://localhost:5000';
+      const baseUrl = getBaseUrl();
+      const webhookUrls = getTwilioWebhookUrls(baseUrl);
       
       // Configure phone number webhooks
       await client.incomingPhoneNumbers(phoneNumber.sid).update({
-        voiceUrl: `${baseUrl}/api/twilio/voice`,
+        voiceUrl: webhookUrls.voiceUrl,
         voiceMethod: 'POST',
-        statusCallback: `${baseUrl}/api/twilio/status`,
+        statusCallback: webhookUrls.statusCallbackUrl,
         statusCallbackMethod: 'POST'
       });
       
