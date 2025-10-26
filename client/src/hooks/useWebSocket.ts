@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback, useState, useMemo } from "react";
 import { useAuth } from "./useAuth";
 import { useQueryClient } from "@tanstack/react-query";
 import { getWebSocketConfig, getReconnectDelay } from "@/lib/websocketConfig";
@@ -18,7 +18,9 @@ export function useWebSocket() {
   const [isConnected, setIsConnected] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const reconnectAttempts = useRef(0);
-  const wsConfig = getWebSocketConfig();
+  
+  // Memoize config to prevent recreation on every render
+  const wsConfig = useMemo(() => getWebSocketConfig(), []);
   const maxReconnectAttempts = wsConfig.reconnectOptions.maxAttempts;
   const isIntentionalDisconnect = useRef(false);
 
@@ -278,7 +280,8 @@ export function useWebSocket() {
     return () => {
       disconnect();
     };
-  }, [isAuthenticated, user?.id, connect, disconnect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user?.id]);
 
   return {
     isConnected,
