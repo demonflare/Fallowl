@@ -18,7 +18,7 @@ interface DecodedToken {
 class WebSocketService {
   private wss: WebSocketServer | null = null;
   private clients: Map<number, Set<WebSocketClient>> = new Map();
-  private jwksClient: jwksClient.JwksClient;
+  private jwksClient: jwksClient.JwksClient | null = null;
 
   initialize(server: Server) {
     this.jwksClient = jwksClient({
@@ -162,6 +162,11 @@ class WebSocketService {
 
   private async verifyToken(token: string): Promise<DecodedToken | null> {
     try {
+      if (!this.jwksClient) {
+        console.error("❌ JWKS client not initialized");
+        return null;
+      }
+
       const decodedHeader = jwt.decode(token, { complete: true });
       if (!decodedHeader || typeof decodedHeader === 'string' || !decodedHeader.header) {
         console.error("❌ Failed to decode JWT header");
