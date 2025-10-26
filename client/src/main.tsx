@@ -8,7 +8,8 @@ const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID || "placeholder";
 
 // Automatically use current domain - this ensures Auth0 redirect works
 // correctly even when Replit changes the domain
-const redirectUri = window.location.origin;
+// You can manually override by setting VITE_AUTH0_REDIRECT_URI
+const redirectUri = import.meta.env.VITE_AUTH0_REDIRECT_URI || window.location.origin;
 
 // Don't use Management API audience for user authentication
 // If you have a custom API, set VITE_AUTH0_AUDIENCE in your environment
