@@ -30,10 +30,6 @@ import CalendarPage from "@/pages/CalendarPage";
 import ParallelDialerPage from "@/pages/ParallelDialerPage";
 import CallStatusOverviewPage from "@/pages/CallStatusOverviewPage";
 import ParallelDialerVerificationPage from "@/pages/ParallelDialerVerificationPage";
-import ScheduledCallsPage from "@/pages/ScheduledCallsPage";
-import CallScriptsPage from "@/pages/CallScriptsPage";
-import CallDispositionsPage from "@/pages/CallDispositionsPage";
-import EmailsPage from "@/pages/EmailsPage";
 
 const pageComponents = {
   dashboard: DashboardPage,
@@ -42,11 +38,7 @@ const pageComponents = {
   'parallel-dialer-verification': ParallelDialerVerificationPage,
   'call-status-overview': CallStatusOverviewPage,
   'call-log': CallLogPage,
-  'scheduled-calls': ScheduledCallsPage,
-  'call-scripts': CallScriptsPage,
-  'call-dispositions': CallDispositionsPage,
   sms: SmsPage,
-  emails: EmailsPage,
   recordings: RecordingsPage,
   contacts: ContactsPage,
   lists: ListsPage,
