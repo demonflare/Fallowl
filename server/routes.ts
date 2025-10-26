@@ -3536,8 +3536,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const key = req.params.key;
+      
+      // First try user-specific setting
       const userSpecificKey = `${key}_user_${userId}`;
-      const setting = await storage.getSetting(userSpecificKey);
+      let setting = await storage.getSetting(userSpecificKey);
+      
+      // If not found, try global setting (for keys like 'system', 'parallel_dialer_greeting', etc)
+      if (!setting) {
+        setting = await storage.getSetting(key);
+      }
+      
       if (!setting) {
         return res.status(404).json({ message: "Setting not found" });
       }
@@ -3550,12 +3558,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/settings", checkJwt, requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const userId = getUserIdFromRequest(req);
-      const { key, value } = req.body;
+      const { key, value, global } = req.body;
       if (!key || value === undefined) {
         return res.status(400).json({ message: "Key and value are required" });
       }
-      const userSpecificKey = `${key}_user_${userId}`;
-      const setting = await storage.setSetting(userSpecificKey, value);
+      
+      // Support global settings (like parallel_dialer_greeting) if global=true
+      const settingKey = global ? key : `${key}_user_${userId}`;
+      const setting = await storage.setSetting(settingKey, value);
       
       res.json(setting);
     } catch (error: any) {

@@ -219,6 +219,7 @@ export default function ParallelDialerPage() {
       const response = await apiRequest("POST", "/api/settings", {
         key: "parallel_dialer_greeting",
         value: url,
+        global: true,
       });
       return response.json();
     },

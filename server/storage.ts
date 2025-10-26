@@ -3080,6 +3080,12 @@ export class DatabaseStorage implements IStorage {
         console.log('✓ Default call settings created');
       }
 
+      const parallelDialerGreeting = await this.getSetting('parallel_dialer_greeting');
+      if (!parallelDialerGreeting) {
+        await this.setSetting('parallel_dialer_greeting', '');
+        console.log('✓ Default parallel dialer greeting setting created');
+      }
+
     } catch (error) {
       console.error('Error initializing default data:', error);
     }
