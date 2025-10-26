@@ -4,7 +4,15 @@
 DialPax is a cloud-based dialer and CRM Single Page Application (SPA) designed to provide a comprehensive platform for managing communication and customer relationships. It integrates features for calls, SMS, contacts, recordings, and system settings, aiming to be a scalable, full-stack solution for businesses. The platform focuses on enhancing business communication, streamlining CRM processes, and offering a robust, secure, and user-friendly experience.
 
 ## Recent Changes
-- **October 26, 2025**: Removed four features to streamline the platform: Scheduled Calls, Call Scripts, Call Dispositions, and Emails. This includes removal of all frontend pages, backend routes, database schemas, and related types/imports. The database schema references in the calls table and calendarEvents table have been cleaned up.
+- **October 26, 2025**: 
+  - Fixed production deployment issues for AWS environments
+  - Added comprehensive environment variable validation at startup
+  - Enhanced error handling for DNS resolution failures (AWS VPC issues)
+  - Improved BASE_URL configuration with automatic HTTPS enforcement
+  - Fixed Twilio webhook protocol detection for production environments
+  - Added database connection testing on startup
+  - Created AWS deployment troubleshooting guide (AWS_TWILIO_FIX_GUIDE.md)
+  - Removed four features to streamline the platform: Scheduled Calls, Call Scripts, Call Dispositions, and Emails
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
