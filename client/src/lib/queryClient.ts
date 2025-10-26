@@ -18,15 +18,20 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
   if (getAccessToken) {
     try {
       const audience = import.meta.env.VITE_AUTH0_AUDIENCE;
+      console.log('[Auth Debug] Requesting token with audience:', audience || 'none');
       const token = await getAccessToken(audience ? {
         authorizationParams: { audience }
       } : {});
+      console.log('[Auth Debug] Token retrieved successfully:', token ? 'YES' : 'NO');
       return { "Authorization": `Bearer ${token}` };
     } catch (error) {
-      console.error("Failed to get access token:", error);
+      console.error("[Auth Error] Failed to get access token:", error);
+      console.error("[Auth Error] This will cause 401 errors on API requests");
+      console.error("[Auth Error] Check Auth0 configuration and allowed URLs");
       return {};
     }
   }
+  console.warn("[Auth Warning] No access token getter available");
   return {};
 }
 
