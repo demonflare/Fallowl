@@ -2,6 +2,7 @@ import { useStore } from "@/store/useStore";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Menu, Moon, Sun } from "lucide-react";
+import { WebSocketStatusIndicator } from "./WebSocketStatusIndicator";
 
 const viewTitles = {
   dashboard: 'Dashboard',
@@ -65,10 +66,7 @@ export default function Header() {
               <Moon className="w-4 h-4 text-gray-600 dark:text-gray-300" />
             )}
           </Button>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-xs text-gray-600 dark:text-gray-300">Online</span>
-          </div>
+          <WebSocketStatusIndicator />
         </div>
       </div>
     </header>

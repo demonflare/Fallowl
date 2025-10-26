@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useAuth } from "./useAuth";
 import { useQueryClient } from "@tanstack/react-query";
+import { getWebSocketConfig, getReconnectDelay } from "@/lib/websocketConfig";
 
 interface WebSocketMessage {
   type: string;
@@ -13,34 +14,50 @@ export function useWebSocket() {
   const wsRef = useRef<WebSocket | null>(null);
   const queryClient = useQueryClient();
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const heartbeatIntervalRef = useRef<NodeJS.Timeout>();
   const [isConnected, setIsConnected] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   const reconnectAttempts = useRef(0);
-  const maxReconnectAttempts = 5;
+  const wsConfig = getWebSocketConfig();
+  const maxReconnectAttempts = wsConfig.reconnectOptions.maxAttempts;
+  const isIntentionalDisconnect = useRef(false);
 
   const connect = useCallback(async () => {
     if (!isAuthenticated || !user?.id) {
+      console.log("⏸️ WebSocket connection skipped: user not authenticated");
       return;
     }
 
     // Prevent multiple simultaneous connection attempts
     if (wsRef.current?.readyState === WebSocket.OPEN || wsRef.current?.readyState === WebSocket.CONNECTING) {
+      console.log("⏸️ WebSocket connection skipped: already connected or connecting");
       return;
     }
 
     try {
       const token = await getAccessTokenSilently();
-      
-      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      const wsUrl = wsConfig.url;
 
-      console.log("🔌 Connecting to WebSocket:", wsUrl);
+      console.log(`🔌 Connecting to WebSocket: ${wsUrl} (attempt ${reconnectAttempts.current + 1}/${maxReconnectAttempts})`);
 
       const ws = new WebSocket(wsUrl, [`auth-${token}`]);
+      isIntentionalDisconnect.current = false;
 
       ws.onopen = () => {
-        console.log("✅ WebSocket connected");
+        console.log("✅ WebSocket connected successfully");
         setIsConnected(true);
+        setConnectionError(null);
         reconnectAttempts.current = 0;
+        
+        // Start heartbeat
+        if (heartbeatIntervalRef.current) {
+          clearInterval(heartbeatIntervalRef.current);
+        }
+        heartbeatIntervalRef.current = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: "ping" }));
+          }
+        }, wsConfig.heartbeatInterval);
       };
 
       ws.onmessage = (event) => {
@@ -161,42 +178,88 @@ export function useWebSocket() {
 
       ws.onerror = (error) => {
         console.error("❌ WebSocket error:", error);
+        setConnectionError("WebSocket connection error occurred");
         setIsConnected(false);
       };
 
-      ws.onclose = () => {
-        console.log("🔌 WebSocket disconnected");
+      ws.onclose = (event) => {
+        console.log(`🔌 WebSocket disconnected (code: ${event.code}, reason: ${event.reason || 'none'})`);
         setIsConnected(false);
         wsRef.current = null;
+        
+        // Clear heartbeat
+        if (heartbeatIntervalRef.current) {
+          clearInterval(heartbeatIntervalRef.current);
+          heartbeatIntervalRef.current = undefined;
+        }
 
-        if (reconnectAttempts.current < maxReconnectAttempts) {
-          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
-          console.log(`🔄 Reconnecting in ${delay}ms... (attempt ${reconnectAttempts.current + 1}/${maxReconnectAttempts})`);
+        // Only attempt to reconnect if this wasn't an intentional disconnect
+        if (!isIntentionalDisconnect.current && reconnectAttempts.current < maxReconnectAttempts) {
+          const delay = getReconnectDelay(
+            reconnectAttempts.current, 
+            wsConfig.reconnectOptions.baseDelay, 
+            wsConfig.reconnectOptions.maxDelay
+          );
+          
+          console.log(`🔄 Reconnecting in ${Math.round(delay)}ms... (attempt ${reconnectAttempts.current + 1}/${maxReconnectAttempts})`);
+          setConnectionError(`Reconnecting in ${Math.round(delay / 1000)}s...`);
           
           reconnectTimeoutRef.current = setTimeout(() => {
             reconnectAttempts.current++;
             connect();
           }, delay);
-        } else {
-          console.log("❌ Max reconnection attempts reached");
+        } else if (reconnectAttempts.current >= maxReconnectAttempts) {
+          const errorMsg = "Max reconnection attempts reached. Please refresh the page.";
+          console.error(`❌ ${errorMsg}`);
+          setConnectionError(errorMsg);
         }
       };
 
       wsRef.current = ws;
     } catch (error) {
-      console.error("❌ Failed to get access token for WebSocket:", error);
+      console.error("❌ Failed to establish WebSocket connection:", error);
+      setConnectionError("Failed to authenticate WebSocket connection");
+      setIsConnected(false);
+      
+      // Retry connection with backoff
+      if (reconnectAttempts.current < maxReconnectAttempts) {
+        const delay = getReconnectDelay(
+          reconnectAttempts.current, 
+          wsConfig.reconnectOptions.baseDelay, 
+          wsConfig.reconnectOptions.maxDelay
+        );
+        
+        reconnectTimeoutRef.current = setTimeout(() => {
+          reconnectAttempts.current++;
+          connect();
+        }, delay);
+      }
     }
-  }, [isAuthenticated, user?.id, getAccessTokenSilently, queryClient]);
+  }, [isAuthenticated, user?.id, getAccessTokenSilently, queryClient, wsConfig, maxReconnectAttempts]);
 
   const disconnect = useCallback(() => {
+    console.log("🔌 Intentionally disconnecting WebSocket");
+    isIntentionalDisconnect.current = true;
+    
+    // Clear all timers
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = undefined;
     }
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+      heartbeatIntervalRef.current = undefined;
+    }
+    
+    // Close WebSocket connection
     if (wsRef.current) {
-      wsRef.current.close();
+      wsRef.current.close(1000, "Client disconnect");
       wsRef.current = null;
     }
+    
     setIsConnected(false);
+    setConnectionError(null);
+    reconnectAttempts.current = 0;
   }, []);
 
   const sendMessage = useCallback((message: WebSocketMessage) => {
@@ -215,18 +278,11 @@ export function useWebSocket() {
     return () => {
       disconnect();
     };
-  }, [isAuthenticated, user?.id]);
-
-  useEffect(() => {
-    const pingInterval = setInterval(() => {
-      sendMessage({ type: "ping" });
-    }, 30000);
-
-    return () => clearInterval(pingInterval);
-  }, [sendMessage]);
+  }, [isAuthenticated, user?.id, connect, disconnect]);
 
   return {
     isConnected,
+    connectionError,
     sendMessage,
     connect,
     disconnect,
