@@ -5,9 +5,19 @@
 
 /**
  * Get the base URL for the application
- * Priority: REPLIT_DOMAINS > REPLIT_DEV_DOMAIN > localhost
+ * Priority: BASE_URL > REPLIT_DOMAINS > REPLIT_DEV_DOMAIN > localhost
  */
 export function getBaseUrl(): string {
+  // Custom BASE_URL (for AWS, custom deployments, etc.)
+  if (process.env.BASE_URL) {
+    const url = process.env.BASE_URL.trim();
+    // Ensure HTTPS in production (if not localhost)
+    if (!url.includes('localhost') && !url.startsWith('https://')) {
+      return `https://${url.replace(/^http:\/\//, '')}`;
+    }
+    return url;
+  }
+  
   // Production: Use REPLIT_DOMAINS (comma-separated list, use first domain)
   if (process.env.REPLIT_DOMAINS) {
     const domains = process.env.REPLIT_DOMAINS.split(',');
