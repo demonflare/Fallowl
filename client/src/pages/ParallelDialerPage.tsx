@@ -65,15 +65,16 @@ export default function ParallelDialerPage() {
   const [isPaused, setIsPaused] = useState(false);
   const [selectedListId, setSelectedListId] = useState<string>("");
   const [parallelLines, setParallelLines] = useState(3);
-  const [callsPerSecond, setCallsPerSecond] = useState(1);
+  const [callsPerSecond, setCallsPerSecond] = useState(3);
   const [callLines, setCallLines] = useState<ParallelCallLine[]>([]);
   const [queuedContacts, setQueuedContacts] = useState<Contact[]>([]);
   const [currentContactIndex, setCurrentContactIndex] = useState(0);
   const [amdEnabled, setAmdEnabled] = useState(true);
-  const [amdTimeout, setAmdTimeout] = useState(30);
-  const [amdSensitivity, setAmdSensitivity] = useState<'standard' | 'high' | 'low'>('standard');
+  const [amdTimeout, setAmdTimeout] = useState(5);
+  const [amdSensitivity, setAmdSensitivity] = useState<'standard' | 'high' | 'low'>('high');
   const [autoSkipVoicemail, setAutoSkipVoicemail] = useState(true);
-  const [useConferenceMode, setUseConferenceMode] = useState(false);
+  const [useConferenceMode, setUseConferenceMode] = useState(true);
+  const [aggressiveDialing, setAggressiveDialing] = useState(false);
   const [greetingUrl, setGreetingUrl] = useState<string>('');
   const [stats, setStats] = useState<DialerStats>({
     totalDialed: 0,
@@ -88,6 +89,8 @@ export default function ParallelDialerPage() {
   });
   const [conferenceActive, setConferenceActive] = useState(false);
   const [conferenceReady, setConferenceReady] = useState(false);
+  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
+  const [firstConnectTime, setFirstConnectTime] = useState<number | null>(null);
   
   // Mutex to prevent concurrent dialNextBatch executions
   const isDialingBatchRef = useRef(false);
@@ -449,6 +452,12 @@ export default function ParallelDialerPage() {
             setStats(prev => ({ ...prev, voicemails: prev.voicemails + 1 }));
           } else if (isConnected) {
             console.log(`📊 Counted connected call for line ${line.id}`);
+            
+            // Track first connect time for performance metrics
+            if (!firstConnectTime) {
+              setFirstConnectTime(Date.now());
+            }
+            
             setStats(prev => ({ ...prev, connected: prev.connected + 1 }));
             
             // Add talk time for completed human calls
@@ -509,19 +518,17 @@ export default function ParallelDialerPage() {
     return () => window.removeEventListener('conference_ready', handleConferenceReady);
   }, [conferenceActive, conferenceReady, toast]);
 
-  // Listen for primary call connected - stop auto-dialing
+  // OPTIMIZATION: Don't auto-pause on primary connect for maximum connects
+  // Keep dialing to queue additional calls in conference
   useEffect(() => {
     const handlePrimaryConnected = (event: any) => {
       const data = event.detail;
-      console.log('🎯 Primary call connected on line:', data.lineId, '- stopping auto-dial');
-      
-      // Pause the dialer to prevent new calls
-      setIsPaused(true);
+      console.log('🎯 Primary call connected on line:', data.lineId, '- continuing to dial for max connects');
       
       toast({
         title: "Call Connected",
-        description: "Primary call connected. Other lines paused.",
-        duration: 3000
+        description: "Primary call connected. Continuing to dial...",
+        duration: 2000
       });
     };
 
@@ -570,9 +577,9 @@ export default function ParallelDialerPage() {
           if (line.startTime && (line.status === 'dialing' || line.status === 'ringing')) {
             const timeInCurrentStatus = Math.floor((Date.now() - line.startTime) / 1000);
             
-            // Very generous timeouts to accommodate poor network conditions
-            const warningThreshold = line.status === 'dialing' ? 150 : 120; // 2.5min/2min
-            const maxTimeInStatus = line.status === 'dialing' ? 180 : 150; // 3min/2.5min
+            // Optimized timeouts for faster line recycling and max connects
+            const warningThreshold = line.status === 'dialing' ? 40 : 35; // 40s/35s
+            const maxTimeInStatus = line.status === 'dialing' ? 60 : 45; // 60s/45s
             
             // Show warning at threshold
             if (timeInCurrentStatus === warningThreshold && !warningShownRef.has(line.id)) {
@@ -641,9 +648,14 @@ export default function ParallelDialerPage() {
     // Clone current state to avoid stale closures
     const currentLines = [...callLines];
     const availableLines = currentLines.filter(line => line.status === 'idle');
+    
+    // AGGRESSIVE DIALING: Dial 2x available lines to compensate for no-answers/busy
+    const dialMultiplier = aggressiveDialing ? 2 : 1;
+    const maxContactsToDial = availableLines.length * dialMultiplier;
+    
     const contactsToDial = queuedContacts.slice(
       currentContactIndex, 
-      currentContactIndex + availableLines.length
+      currentContactIndex + maxContactsToDial
     );
 
     // If no idle lines, mark request and return
@@ -918,7 +930,7 @@ export default function ParallelDialerPage() {
       
       try {
         // Create conference and call agent to join
-        const response = await apiRequest('POST', '/api/dialer/conference/create', {});
+        const response = await apiRequest('POST', '/api/dialer/conference/start', {});
         const result = await response.json();
         
         if (!response.ok) {
@@ -1025,6 +1037,10 @@ export default function ParallelDialerPage() {
     setCurrentContactIndex(0);
     setIsDialing(true);
     setIsPaused(false);
+    
+    // Track session start time for performance metrics
+    setSessionStartTime(Date.now());
+    setFirstConnectTime(null);
     
     console.log('✅ Starting parallel dialer - WebRTC device is ready and registered');
   };
@@ -1393,6 +1409,28 @@ export default function ParallelDialerPage() {
                       Conference Mode
                     </Label>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="aggressive-dialing"
+                      checked={aggressiveDialing}
+                      onCheckedChange={setAggressiveDialing}
+                      disabled={isDialing}
+                      data-testid="switch-aggressive-dialing"
+                      className="scale-90"
+                    />
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Label htmlFor="aggressive-dialing" className="text-xs font-medium cursor-pointer">
+                            Aggressive 2x
+                          </Label>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Dial 2x lines to compensate for no-answers/busy</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </div>
                 <Button
                   variant="ghost"
@@ -1634,6 +1672,85 @@ export default function ParallelDialerPage() {
         </div>
 
         <div className="space-y-3">
+          {/* Performance Metrics Card */}
+          {sessionStartTime && (
+            <Card className="border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/50">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  Performance
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2.5">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-2.5 bg-white dark:bg-gray-950 rounded-lg border">
+                    <div className="text-xl font-bold text-blue-600 dark:text-blue-400 tabular-nums">
+                      {(() => {
+                        const sessionDurationHours = (Date.now() - sessionStartTime) / (1000 * 60 * 60);
+                        const connectsPerHour = sessionDurationHours > 0 ? Math.round(stats.connected / sessionDurationHours) : 0;
+                        return connectsPerHour;
+                      })()}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Connects/Hr</div>
+                  </div>
+                  <div className="p-2.5 bg-white dark:bg-gray-950 rounded-lg border">
+                    <div className="text-xl font-bold text-blue-600 dark:text-blue-400 tabular-nums">
+                      {firstConnectTime 
+                        ? `${Math.round((firstConnectTime - sessionStartTime) / 1000)}s`
+                        : '-'
+                      }
+                    </div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">1st Connect</div>
+                  </div>
+                  <div className="p-2.5 bg-white dark:bg-gray-950 rounded-lg border">
+                    <div className="text-xl font-bold text-blue-600 dark:text-blue-400 tabular-nums">
+                      {stats.connected > 0 
+                        ? `${Math.round(stats.talkTime / stats.connected)}s`
+                        : '0s'
+                      }
+                    </div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Avg Talk</div>
+                  </div>
+                  <div className="p-2.5 bg-white dark:bg-gray-950 rounded-lg border">
+                    <div className="text-xl font-bold text-blue-600 dark:text-blue-400 tabular-nums">
+                      {(() => {
+                        const sessionDurationMins = (Date.now() - sessionStartTime) / (1000 * 60);
+                        const dialsPerMin = sessionDurationMins > 0 ? (stats.totalDialed / sessionDurationMins).toFixed(1) : '0';
+                        return dialsPerMin;
+                      })()}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Dials/Min</div>
+                  </div>
+                </div>
+                
+                {/* Optimization Tips */}
+                {stats.totalDialed >= 10 && (
+                  <div className="pt-2 border-t space-y-1">
+                    <div className="text-xs font-medium text-muted-foreground mb-1">Optimization Tips</div>
+                    {stats.connected / stats.totalDialed < 0.15 && (
+                      <div className="flex items-start gap-2 text-xs bg-yellow-100 dark:bg-yellow-950 p-2 rounded">
+                        <AlertCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-yellow-600 dark:text-yellow-400" />
+                        <p className="text-yellow-700 dark:text-yellow-300">Low connect rate. Try adjusting call times or list quality.</p>
+                      </div>
+                    )}
+                    {stats.connected / stats.totalDialed >= 0.25 && (
+                      <div className="flex items-start gap-2 text-xs bg-green-100 dark:bg-green-950 p-2 rounded">
+                        <CheckCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-green-600 dark:text-green-400" />
+                        <p className="text-green-700 dark:text-green-300">Excellent connect rate! Keep up the momentum.</p>
+                      </div>
+                    )}
+                    {!aggressiveDialing && stats.connected >= 3 && (
+                      <div className="flex items-start gap-2 text-xs bg-blue-100 dark:bg-blue-950 p-2 rounded">
+                        <Zap className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
+                        <p className="text-blue-700 dark:text-blue-300">Enable Aggressive 2x mode to maximize connects.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+          
           <Card className="border-muted">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">

@@ -4164,10 +4164,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
-      // MODIFIED: Single-call enforcement - PAUSE other lines instead of dropping
-      // When first call connects with human, pause ALL other ringing calls
+      // CALL QUEUE MANAGEMENT: Track primary call and queue secondary human answers
+      let isPrimaryCall = false;
       if (isHuman && lineId) {
-        console.log(`🎯 Human detected on line ${lineId}, pausing other lines (not dropping)`);
+        console.log(`🎯 Human detected on line ${lineId}`);
         
         try {
           // Check if this is the first human-answered call for this session
@@ -4175,97 +4175,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Check if no primary call OR setting value is null (from cleanup)
           if (!primaryCallSetting || !primaryCallSetting.value) {
-            // This is the FIRST human-answered call - mark it as primary and pause others
+            // This is the FIRST human-answered call - mark it as primary
             await storage.setSetting(`parallel_dialer_primary_call_${verifiedUserId}`, {
               lineId,
               callSid: CallSid,
-              timestamp: Date.now()
+              timestamp: Date.now(),
+              inConference: false  // Will be set to true when bridged
             });
             
-            console.log(`✅ Marked line ${lineId} as primary call`);
+            isPrimaryCall = true;
+            console.log(`✅ Marked line ${lineId} as primary call - will bridge to conference`);
             
-            // Get all active calls for this user that are in parallel dialer mode
-            const activeCalls = await storage.getActiveCalls(verifiedUserId);
-            const parallelCalls = activeCalls.filter(call => {
-              const callMeta = call.metadata as any;
-              const callTwilioSid = callMeta?.twilioCallSid || call.sipCallId;
-              // Only pause RINGING calls (not answered ones)
-              return callMeta?.lineId && 
-                     callTwilioSid !== CallSid && 
-                     ['initiated', 'queued', 'ringing'].includes(call.status);
-            });
-            
-            if (parallelCalls.length > 0) {
-              console.log(`⏸️ Pausing ${parallelCalls.length} ringing lines (not canceling)`);
-              
-              // Get Twilio client
-              const { client } = await userTwilioCache.getTwilioClient(verifiedUserId);
-              
-              // Cancel only RINGING calls, leave answered calls alone (they'll be handled separately)
-              for (const call of parallelCalls) {
-                const callMeta = call.metadata as any;
-                const twilioCallSid = callMeta?.twilioCallSid || call.sipCallId;
-                
-                if (!twilioCallSid) continue;
-                
-                try {
-                  // Fetch call details
-                  const twilioCall = await client.calls(twilioCallSid).fetch();
-                  
-                  // Only cancel if still ringing
-                  if (['ringing', 'queued', 'initiated'].includes(twilioCall.status)) {
-                    await client.calls(twilioCallSid).update({ status: 'canceled' });
-                    
-                    // Update call record
-                    await storage.updateCall(verifiedUserId, call.id, {
-                      status: 'canceled',
-                      disposition: 'paused',
-                      hangupReason: 'paused_for_primary_call',
-                      metadata: {
-                        ...callMeta,
-                        pausedForPrimaryCall: true,
-                        primaryCallLine: lineId,
-                        primaryCallSid: CallSid
-                      }
-                    });
-                    
-                    console.log(`⏸️ Paused ringing call ${twilioCallSid} on line ${callMeta?.lineId}`);
-                    
-                    // Broadcast paused event
-                    wsService.broadcastParallelCallEnded(verifiedUserId, {
-                      lineId: callMeta?.lineId,
-                      callSid: twilioCallSid,
-                      status: 'paused',
-                      reason: 'primary_call_connected',
-                      timestamp: Date.now()
-                    });
-                  }
-                } catch (error: any) {
-                  console.error(`❌ Failed to pause call ${twilioCallSid}:`, error.message);
-                }
-              }
-            }
-            
-            // Broadcast that primary call is connected - frontend should stop auto-dialing
+            // Broadcast that primary call is connected
             wsService.broadcastToUser(verifiedUserId, 'parallel_dialer_primary_connected', {
               lineId,
               callSid: CallSid
             });
           } else {
-            // This is a SECOND or later human-answered call - it should be put on HOLD, not conferenced
-            console.log(`🔄 Secondary human-answered call detected on line ${lineId} - will be put on HOLD`);
+            // This is a SECOND or later human-answered call - queue it on HOLD
+            console.log(`🔄 Secondary human-answered call detected on line ${lineId} - queueing on HOLD`);
             
             // Mark this call as secondary (to be held)
             await storage.setSetting(`parallel_dialer_secondary_call_${verifiedUserId}_${lineId}`, {
               lineId,
               callSid: CallSid,
               timestamp: Date.now(),
-              onHold: true
+              onHold: true,
+              name: name || 'Unknown',
+              phone: To
             });
           }
         } catch (error: any) {
-          console.error('Error in single-call enforcement:', error);
-          // Don't fail the webhook - continue connecting the call
+          console.error('Error in call queue management:', error);
+          // Default to primary if error
+          isPrimaryCall = true;
         }
       }
       
@@ -4333,73 +4276,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`🎵 Playing pre-recorded greeting for call ${CallSid}: ${greetingUrl}`);
       }
       
-      // ON-DEMAND CONFERENCE CREATION: If human answered and no conference exists, create one now
-      if (isHuman && (!conferenceData || conferenceData.status !== 'active' || !conferenceData.conferenceStarted)) {
-        console.log(`🎯 Human answered - creating on-demand conference for user ${verifiedUserId}`);
-        
-        // Check if agent is available before creating conference
-        // Settings API uses pattern: {key}_user_{userId}
-        const agentStatusSetting = await storage.getSetting(`agent_webrtc_status_user_${verifiedUserId}`);
-        const agentStatus = agentStatusSetting?.value as any;
-        const isAgentAvailable = agentStatus?.isReady === true;
-        const statusAge = agentStatus?.lastUpdate ? Date.now() - agentStatus.lastUpdate : Infinity;
-        const STATUS_MAX_AGE = 60000; // Consider status stale after 60 seconds
-        
-        if (!isAgentAvailable || statusAge > STATUS_MAX_AGE) {
-          console.warn(`⚠️ Agent unavailable (isReady: ${isAgentAvailable}, statusAge: ${statusAge}ms) - sending to voicemail`);
-          
-          // Agent is unavailable - play message and hang up
-          twimlResponse.say({ voice: 'alice' }, 'Sorry, the agent is currently unavailable. Please try again later.');
-          twimlResponse.hangup();
-          
-          res.set('Content-Type', 'text/xml');
-          res.send(twimlResponse.toString());
-          return;
-        }
-        
-        console.log(`✅ Agent is available (status age: ${statusAge}ms) - proceeding with conference creation`);
-        
-        // Create conference and call agent to join
-        const { client } = await userTwilioCache.getTwilioClient(verifiedUserId);
-        const conferenceName = `parallel-dialer-${verifiedUserId}-${Date.now()}`;
-        const conferenceUrl = `${baseUrl}/api/dialer/conference/join-agent?token=${encodeURIComponent(webhookToken)}&conference=${encodeURIComponent(conferenceName)}`;
-        
-        try {
-          // Call agent to join conference
-          const agentCall = await client.calls.create({
-            to: `client:${user.username}`,
-            from: credentials.phoneNumber,
-            url: conferenceUrl,
-            method: 'POST',
-            statusCallback: `${baseUrl}/api/twilio/status?token=${encodeURIComponent(webhookToken)}`,
-            statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed']
-          });
-          
-          // Store conference data
-          await storage.setSetting(`parallel_dialer_conference_${verifiedUserId}`, {
-            conferenceName,
-            agentCallSid: agentCall.sid,
-            startTime: Date.now(),
-            status: 'active',
-            conferenceStarted: false, // Will be set to true when agent joins
-            isConferenceJoin: true
-          });
-          
-          console.log(`✅ On-demand conference created: ${conferenceName}, calling agent: ${agentCall.sid}`);
-          
-          // Update conferenceData reference for bridging below (create if doesn't exist)
-          if (!conferenceData) {
-            conferenceData = {} as any;
-          }
-          conferenceData.conferenceName = conferenceName;
-          conferenceData.status = 'active';
-          conferenceData.conferenceStarted = false; // Agent hasn't joined yet, but customer will wait in conference
-          
-        } catch (error: any) {
-          console.error(`❌ Failed to create on-demand conference:`, error);
-          // Fall through to direct client connection
-        }
-      }
+      // OPTIMIZATION: No on-demand conference creation - conference must be created upfront
+      // This eliminates customer wait time and ensures instant bridging
       
       // Check if this is a secondary call that should be put on HOLD
       const secondaryCallSetting = await storage.getSetting(`parallel_dialer_secondary_call_${verifiedUserId}_${lineId}`);
@@ -5738,6 +5616,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`📞 Disconnecting customer call ${callSid} for user ${userId}`);
       await client.calls(callSid).update({ status: 'completed' });
 
+      // CALL QUEUE MANAGEMENT: If this was the primary call, promote a queued call
+      try {
+        const primaryCallSetting = await storage.getSetting(`parallel_dialer_primary_call_${userId}`);
+        if (primaryCallSetting && primaryCallSetting.value) {
+          const primaryData = primaryCallSetting.value as any;
+          
+          // Check if the ended call was the primary
+          if (primaryData.callSid === callSid) {
+            console.log(`🔄 Primary call ended - checking for queued calls`);
+            
+            // Clear primary call setting
+            await storage.setSetting(`parallel_dialer_primary_call_${userId}`, null);
+            
+            // Look for queued secondary calls (line-0 through line-9)
+            for (let i = 0; i < 10; i++) {
+              const secondaryKey = `parallel_dialer_secondary_call_${userId}_line-${i}`;
+              const secondarySetting = await storage.getSetting(secondaryKey);
+              
+              if (secondarySetting && secondarySetting.value) {
+                const secondaryData = secondarySetting.value as any;
+                
+                if (secondaryData.onHold && secondaryData.callSid) {
+                  console.log(`✅ Found queued call on line-${i} (${secondaryData.callSid}) - promoting to primary`);
+                  
+                  // Promote this call to primary
+                  await storage.setSetting(`parallel_dialer_primary_call_${userId}`, {
+                    lineId: `line-${i}`,
+                    callSid: secondaryData.callSid,
+                    timestamp: Date.now(),
+                    inConference: false
+                  });
+                  
+                  // Remove from secondary queue
+                  await storage.setSetting(secondaryKey, null);
+                  
+                  // Redirect the call from hold to conference
+                  const baseUrl = process.env.REPLIT_DOMAINS 
+                    ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
+                    : 'https://fallowl.com';
+                  const webhookToken = generateWebhookToken(userId);
+                  const conferenceSetting = await storage.getSetting(`parallel_dialer_conference_${userId}`);
+                  
+                  if (conferenceSetting && conferenceSetting.value) {
+                    const conferenceData = conferenceSetting.value as any;
+                    const redirectUrl = `${baseUrl}/api/dialer/queue/join-conference?token=${encodeURIComponent(webhookToken)}&conference=${encodeURIComponent(conferenceData.conferenceName)}&lineId=line-${i}`;
+                    
+                    // Redirect the held call to join conference
+                    await client.calls(secondaryData.callSid).update({
+                      url: redirectUrl,
+                      method: 'POST'
+                    });
+                    
+                    console.log(`🎯 Redirected queued call ${secondaryData.callSid} to conference`);
+                    
+                    // Broadcast update to frontend
+                    wsService.broadcastToUser(userId, 'parallel_dialer_queue_promoted', {
+                      lineId: `line-${i}`,
+                      callSid: secondaryData.callSid,
+                      name: secondaryData.name,
+                      phone: secondaryData.phone
+                    });
+                  }
+                  
+                  break; // Only promote one call at a time
+                }
+              }
+            }
+          }
+        }
+      } catch (queueError: any) {
+        console.error('Error managing call queue:', queueError);
+        // Don't fail the hangup if queue management fails
+      }
+
       res.json({ message: "Call ended successfully" });
     } catch (error: any) {
       console.error('Hangup error:', error);
@@ -5945,6 +5897,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error: any) {
       console.error('❌ Conference join agent error:', error);
+      const VoiceResponse = twilio.twiml.VoiceResponse;
+      const twimlResponse = new VoiceResponse();
+      twimlResponse.say({ voice: 'alice' }, 'Error joining conference.');
+      twimlResponse.hangup();
+      res.set('Content-Type', 'text/xml');
+      res.send(twimlResponse.toString());
+    }
+  });
+
+  // Join queued call to conference (when promoted from hold)
+  app.post("/api/dialer/queue/join-conference", validateTwilioWebhook, async (req, res) => {
+    try {
+      const token = req.query.token as string;
+      const conferenceName = req.query.conference as string;
+      const lineId = req.query.lineId as string;
+      const CallSid = req.body.CallSid;
+      
+      console.log('🎯 Queue join-conference webhook called:', {
+        conferenceName,
+        CallSid,
+        lineId,
+        hasToken: !!token
+      });
+      
+      if (!token || !conferenceName) {
+        throw new Error('Missing token or conference name');
+      }
+
+      const userId = verifyWebhookToken(token);
+      
+      // Use Twilio SDK's VoiceResponse for proper XML generation
+      const VoiceResponse = twilio.twiml.VoiceResponse;
+      const twimlResponse = new VoiceResponse();
+      
+      const baseUrl = process.env.REPLIT_DOMAINS 
+        ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
+        : `https://${req.get('host')}`;
+      
+      // Join the customer to the conference
+      const dial = twimlResponse.dial();
+      dial.conference({
+        startConferenceOnEnter: false,  // Customer doesn't start conference
+        endConferenceOnExit: false,     // Customer leaving doesn't end conference
+        waitUrl: '',
+        beep: 'false' as any,
+        statusCallback: `${baseUrl}/api/twilio/conference-status?token=${encodeURIComponent(token)}`,
+        statusCallbackEvent: ['join', 'leave'] as any
+      }, conferenceName);
+
+      console.log(`🎯 Queued customer joining conference: ${conferenceName} (CallSid: ${CallSid}, line: ${lineId})`);
+      res.set('Content-Type', 'text/xml');
+      res.send(twimlResponse.toString());
+
+    } catch (error: any) {
+      console.error('❌ Queue join conference error:', error);
       const VoiceResponse = twilio.twiml.VoiceResponse;
       const twimlResponse = new VoiceResponse();
       twimlResponse.say({ voice: 'alice' }, 'Error joining conference.');
