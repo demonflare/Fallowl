@@ -11,12 +11,14 @@ function getEncryptionKey(): Buffer {
     throw new Error('ENCRYPTION_KEY environment variable must be set');
   }
   
-  // If the key is shorter than required, derive a key using PBKDF2
-  if (key.length < KEY_LENGTH) {
-    return crypto.pbkdf2Sync(key, 'salt', 100000, KEY_LENGTH, 'sha512');
+  // If the key is exactly 64 hex characters (32 bytes in hex), convert from hex
+  if (key.length === 64 && /^[0-9a-fA-F]{64}$/.test(key)) {
+    return Buffer.from(key, 'hex');
   }
   
-  return Buffer.from(key.slice(0, KEY_LENGTH), 'utf8');
+  // For any other format, derive a consistent key using PBKDF2
+  // This ensures the same input always produces the same encryption key
+  return crypto.pbkdf2Sync(key, 'replit-encryption-salt', 100000, KEY_LENGTH, 'sha512');
 }
 
 export function encrypt(text: string): string {
