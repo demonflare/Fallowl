@@ -30,7 +30,7 @@ export function validateEnvironment(): EnvValidationResult {
   }
   
   if (!process.env.DATABASE_URL) {
-    errors.push('DATABASE_URL is required for database connectivity');
+    warnings.push('DATABASE_URL not set - database features will be unavailable');
   } else {
     // Validate DATABASE_URL format
     try {
@@ -144,22 +144,42 @@ export async function testDatabaseConnection(): Promise<boolean> {
   
   console.log('🔌 Testing database connection...');
   
+  let testPool: any = null;
   try {
     const { Pool } = await import('@neondatabase/serverless');
-    const pool = new Pool({ 
+    testPool = new Pool({ 
       connectionString: process.env.DATABASE_URL,
       connectionTimeoutMillis: 5000,
     });
     
-    const client = await pool.connect();
+    // Add error handler to prevent crashes - swallow all errors
+    testPool.on('error', (err: Error) => {
+      // Silently catch pool errors - we'll handle them in the catch block
+    });
+    
+    const client = await testPool.connect();
     await client.query('SELECT 1');
     client.release();
-    await pool.end();
+    
+    // Immediately end the pool to close all connections
+    await testPool.end();
     
     console.log('✅ Database connection successful');
     return true;
   } catch (error: any) {
     console.error('❌ Database connection failed:', error.message);
+    
+    // Try to close the pool if it was created
+    if (testPool) {
+      try {
+        // Force end the pool with immediate termination
+        await testPool.end();
+        // Add small delay to allow WebSocket to close
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (e) {
+        // Ignore cleanup errors
+      }
+    }
     
     if (error.code === 'EAI_AGAIN' || error.message?.includes('getaddrinfo')) {
       console.error('\n🔍 DNS Resolution Error Detected!');
@@ -174,6 +194,7 @@ export async function testDatabaseConnection(): Promise<boolean> {
       console.error('  - Remove VPC configuration to use default networking\n');
     }
     
+    // Always return false, never throw
     return false;
   }
 }

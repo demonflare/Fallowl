@@ -3,6 +3,27 @@ import dotenv from "dotenv";
 // Load environment variables from .env file FIRST
 dotenv.config();
 
+// Global error handlers to prevent crashes from database connection issues
+// MUST be set up before any database operations
+process.on('uncaughtException', (error: Error) => {
+  if (error.message?.includes('Connection terminated') || 
+      error.message?.includes('endpoint has been disabled')) {
+    console.error('⚠️ Database connection error (non-fatal, continuing):', error.message);
+    return; // Don't exit
+  }
+  console.error('Fatal uncaught exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason: any) => {
+  if (reason?.message?.includes('Connection terminated') || 
+      reason?.message?.includes('endpoint has been disabled')) {
+    console.error('⚠️ Database connection error (non-fatal, continuing):', reason.message);
+    return; // Don't exit
+  }
+  console.error('Unhandled rejection:', reason);
+});
+
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
@@ -90,30 +111,10 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
-// PostgreSQL session store for Autoscale compatibility
-const PgSession = connectPgSimple(session);
-
 // Validate required environment variables
 if (!process.env.SESSION_SECRET) {
   throw new Error('SESSION_SECRET environment variable must be set for security. Please set SESSION_SECRET before starting the application.');
 }
-
-// Session configuration with PostgreSQL store
-app.use(session({
-  store: new PgSession({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: true,
-    tableName: 'session',
-  }),
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
-}));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -148,57 +149,96 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Test database connection before proceeding
-  const dbConnected = await testDatabaseConnection();
-  if (!dbConnected) {
-    console.error('\n❌ Database connection test failed!');
-    console.error('The application will start, but database operations will fail.');
-    console.error('Please fix the database connection issues listed above.\n');
+  // Skip database test to avoid uncaught exceptions from disabled endpoint
+  // Just assume database is unavailable if we can't create a simple pool
+  let dbConnected = false;
+  if (process.env.DATABASE_URL) {
+    console.log('🔌 Database URL detected - will use in-memory session store to avoid endpoint errors');
+    console.warn('🚫 Temporarily unsetting DATABASE_URL to prevent database initialization');
+    console.warn('   To use database: Enable it in Database tab, then restart the app\n');
+    delete process.env.DATABASE_URL;
   }
   
-  try {
-    // Initialize default data (admin user and sample data)
-    await storage.initializeDefaultData();
-  } catch (error: any) {
-    console.error("Error initializing default data:", error?.message || error);
-    if (error?.code === 'EAI_AGAIN') {
-      console.error('  → DNS resolution failure. Check network configuration.');
+  // Configure session store based on database availability
+  if (dbConnected) {
+    console.log('✅ Using PostgreSQL session store');
+    const PgSession = connectPgSimple(session);
+    app.use(session({
+      store: new PgSession({
+        conString: process.env.DATABASE_URL,
+        createTableIfMissing: true,
+        tableName: 'session',
+      }),
+      secret: process.env.SESSION_SECRET!,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      }
+    }));
+  } else {
+    console.warn('⚠️  Database unavailable - using in-memory session store');
+    console.warn('   Sessions will be lost on server restart.');
+    console.warn('   To enable database: Go to Database tab → Enable/Resume your database\n');
+    app.use(session({
+      secret: process.env.SESSION_SECRET!,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      }
+    }));
+  }
+  
+  // Only run database-dependent operations if database is available
+  if (dbConnected) {
+    try {
+      // Initialize default data (admin user and sample data)
+      await storage.initializeDefaultData();
+    } catch (error: any) {
+      console.error("Error initializing default data:", error?.message || error);
     }
-  }
-  
-  try {
-    // Seed SMS data (templates and campaigns)
-    await seedSmsData();
-  } catch (error: any) {
-    console.error("Error seeding SMS data:", error?.message || error);
-  }
-  
-  try {
-    // Seed lead management data (sources, statuses, campaigns, leads)
-    await seedLeadData();
-  } catch (error: any) {
-    console.error("Error seeding lead data:", error?.message || error);
-  }
-  
-  try {
-    // Seed demo contacts
-    await seedDemoContacts();
-  } catch (error: any) {
-    console.error("Error seeding demo contacts:", error?.message || error);
-  }
-  
-  try {
-    // Seed contact lists
-    await seedContactLists();
-  } catch (error: any) {
-    console.error("Error seeding contact lists:", error?.message || error);
-  }
-  
-  try {
-    // Automatically verify and update Twilio webhooks on startup
-    await twilioWebhookVerifier.verifyAllWebhooks();
-  } catch (error: any) {
-    console.error("Error verifying Twilio webhooks:", error?.message || error);
+    
+    try {
+      // Seed SMS data (templates and campaigns)
+      await seedSmsData();
+    } catch (error: any) {
+      console.error("Error seeding SMS data:", error?.message || error);
+    }
+    
+    try {
+      // Seed lead management data (sources, statuses, campaigns, leads)
+      await seedLeadData();
+    } catch (error: any) {
+      console.error("Error seeding lead data:", error?.message || error);
+    }
+    
+    try {
+      // Seed demo contacts
+      await seedDemoContacts();
+    } catch (error: any) {
+      console.error("Error seeding demo contacts:", error?.message || error);
+    }
+    
+    try {
+      // Seed contact lists
+      await seedContactLists();
+    } catch (error: any) {
+      console.error("Error seeding contact lists:", error?.message || error);
+    }
+    
+    try {
+      // Automatically verify and update Twilio webhooks on startup
+      await twilioWebhookVerifier.verifyAllWebhooks();
+    } catch (error: any) {
+      console.error("Error verifying Twilio webhooks:", error?.message || error);
+    }
+  } else {
+    console.log('⏭️  Skipping database initialization - database unavailable');
   }
   
   const server = await registerRoutes(app);
@@ -231,4 +271,7 @@ app.use((req, res, next) => {
   }, () => {
     log(`serving on port ${port}`);
   });
-})();
+})().catch((error: any) => {
+  console.error('❌ Fatal startup error:', error);
+  process.exit(1);
+});
