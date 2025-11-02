@@ -5269,8 +5269,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const setting = await storage.getSetting(`auto_record_calls_user_${user.id}`);
-      // Default to false (opt-in model) if not set
-      const isEnabled = setting?.value === true || setting?.value === "true" || false;
+      // Default to true (recording enabled by default) if not set
+      const isEnabled = setting?.value === false || setting?.value === "false" ? false : true;
       
       console.log(`📊 Auto-recording status for user ${user.id}: ${isEnabled} (setting value: ${JSON.stringify(setting?.value)})`);
       
