@@ -1,0 +1,29 @@
+0|Fallowl  |    ⏭️  Skipped (no Twilio configured): 5
+0|Fallowl  | ✅ WebSocket server initialized on path /ws
+0|Fallowl  | 11:30:32 PM [express] serving on port 5000
+0|Fallowl  | 11:31:23 PM [express] GET /api/twilio/status 500 in 14ms :: {"message":"getaddrinfo EAI_AGAIN undefined"}
+0|Fallowl  | Error: getaddrinfo EAI_AGAIN undefined
+0|Fallowl  |     at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26)
+0|Fallowl  | 11:31:23 PM [express] GET /api/messages 500 in 5ms :: {"message":"getaddrinfo EAI_AGAIN undefined"}
+0|Fallowl  | 11:31:23 PM [express] GET /api/calls 500 in 4ms :: {"message":"getaddrinfo EAI_AGAIN undefined"}
+0|Fallowl  | Error: getaddrinfo EAI_AGAIN undefined
+0|Fallowl  |     at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26)
+0|Fallowl  | Error: getaddrinfo EAI_AGAIN undefined
+0|Fallowl  |     at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26)
+0|Fallowl  | 11:31:23 PM [express] POST /api/auth/auth0-session 500 in 8ms :: {"message":"getaddrinfo EAI_AGAIN undefined"}
+0|Fallowl  | 11:31:23 PM [express] GET /api/contacts 500 in 7ms :: {"message":"getaddrinfo EAI_AGAIN undefined"}
+0|Fallowl  | Error: getaddrinfo EAI_AGAIN undefined
+0|Fallowl  |     at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26)
+0|Fallowl  | Error: getaddrinfo EAI_AGAIN undefined
+0|Fallowl  |     at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26)
+0|Fallowl  | 11:31:23 PM [express] GET /api/recordings 500 in 7ms :: {"message":"getaddrinfo EAI_AGAIN undefined"}
+0|Fallowl  | Error: getaddrinfo EAI_AGAIN undefined
+0|Fallowl  |     at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26)
+0|Fallowl  | 11:31:23 PM [express] GET /api/voicemails 500 in 9ms :: {"message":"getaddrinfo EAI_AGAIN undefined"}
+0|Fallowl  | 11:31:23 PM [express] GET /api/user/twilio/status 500 in 8ms :: {"message":"getaddrinfo EAI_AGAIN undefined"}
+0|Fallowl  | Error: getaddrinfo EAI_AGAIN undefined
+0|Fallowl  |     at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26)
+0|Fallowl  | Error: getaddrinfo EAI_AGAIN undefined
+0|Fallowl  |     at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26)
+0|Fallowl  | 🔌 New WebSocket connection
+0|Fallowl  | ✅ WebSocket client registered for user 27
