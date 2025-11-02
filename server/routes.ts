@@ -3960,10 +3960,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           : `https://${req.get('host')}`;
         
         // Check if auto-recording is enabled for this user
-        let autoRecordEnabled = false; // Default to false (opt-in)
+        let autoRecordEnabled = true; // Default to true (recording enabled by default)
         if (user) {
           const setting = await storage.getSetting(`auto_record_calls_user_${user.id}`);
-          autoRecordEnabled = setting?.value === true || setting?.value === "true";
+          // Default to true if not set, false only if explicitly disabled
+          autoRecordEnabled = setting?.value === false || setting?.value === "false" ? false : true;
           console.log(`📊 Outbound call - Auto-recording for user ${user.id}: ${autoRecordEnabled} (setting: ${JSON.stringify(setting?.value)})`);
         }
         
@@ -4051,9 +4052,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Route incoming call to the correct user's WebRTC client
         // Check if auto-recording is enabled for this user
-        let autoRecordEnabled = false; // Default to false (opt-in)
+        let autoRecordEnabled = true; // Default to true (recording enabled by default)
         const setting = await storage.getSetting(`auto_record_calls_user_${incomingUser.id}`);
-        autoRecordEnabled = setting?.value === true || setting?.value === "true";
+        // Default to true if not set, false only if explicitly disabled
+        autoRecordEnabled = setting?.value === false || setting?.value === "false" ? false : true;
         console.log(`📊 Incoming call - Auto-recording for user ${incomingUser.id}: ${autoRecordEnabled} (setting: ${JSON.stringify(setting?.value)})`);
         
         const baseUrl = process.env.REPLIT_DOMAINS 
