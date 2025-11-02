@@ -22,6 +22,7 @@ interface TwilioStatus {
 function AppContent() {
   const { user, isLoading, getAccessTokenSilently, login, error: auth0Error } = useAuth();
   const [sessionCreated, setSessionCreated] = useState(false);
+  const [sessionAttempted, setSessionAttempted] = useState(false);
   const [authError, setAuthError] = useState<{ error: string; errorDescription: string } | null>(null);
   const [hasAttemptedLogin, setHasAttemptedLogin] = useState(() => {
     // Check sessionStorage to see if we've already attempted login
@@ -67,7 +68,8 @@ function AppContent() {
   // Create backend session after Auth0 login
   useEffect(() => {
     const createSession = async () => {
-      if (user && !sessionCreated) {
+      if (user && !sessionAttempted) {
+        setSessionAttempted(true);
         try {
           console.log('🔐 Creating backend session for user:', user.username);
           const response = await apiRequest('POST', '/api/auth/auth0-session');
@@ -84,7 +86,7 @@ function AppContent() {
       }
     };
     createSession();
-  }, [user, sessionCreated]);
+  }, [user, sessionAttempted]);
 
   const [showMicModal, setShowMicModal] = useState(false);
   const [hasShownMicModal, setHasShownMicModal] = useState(false);
