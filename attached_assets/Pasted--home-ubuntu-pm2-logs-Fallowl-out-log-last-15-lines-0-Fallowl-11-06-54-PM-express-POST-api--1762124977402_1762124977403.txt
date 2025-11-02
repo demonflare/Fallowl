@@ -1,0 +1,60 @@
+/home/ubuntu/.pm2/logs/Fallowl-out.log last 15 lines:
+0|Fallowl  | 11:06:54 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:06:56 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:06:56 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:06:56 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:06:56 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:06:56 PM [express] POST /api/auth/auth0-session 429 in 0ms
+0|Fallowl  | 11:06:56 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:06:57 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:06:57 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 🔌 WebSocket client disconnected for user 27
+0|Fallowl  | 11:06:59 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:06:59 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:07:01 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:07:02 PM [express] GET /api/user/twilio/status 429 in 1ms
+0|Fallowl  | 🔌 WebSocket client disconnected for user 27
+
+0|Fallowl  | 11:07:47 PM [express] POST /api/auth/auth0-session 429 in 2ms
+0|Fallowl  | 11:07:47 PM [express] GET /api/voicemails 429 in 1ms
+0|Fallowl  | 11:07:47 PM [express] GET /api/calls 429 in 1ms
+0|Fallowl  | 11:07:47 PM [express] GET /api/messages 429 in 2ms
+0|Fallowl  | 11:07:47 PM [express] GET /api/contacts 429 in 1ms
+0|Fallowl  | 11:07:47 PM [express] GET /api/twilio/status 429 in 1ms
+0|Fallowl  | 11:07:47 PM [express] GET /api/recordings 429 in 1ms
+0|Fallowl  | 11:07:47 PM [express] GET /api/user/twilio/status 429 in 1ms
+0|Fallowl  | 🔌 New WebSocket connection
+0|Fallowl  | ✅ WebSocket client registered for user 27
+0|Fallowl  | 11:07:48 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 🔌 New WebSocket connection
+0|Fallowl  | ✅ WebSocket client registered for user 27
+0|Fallowl  | 11:07:48 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:07:49 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:07:50 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:07:52 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:07:54 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 🔌 WebSocket client disconnected for user 27
+0|Fallowl  | 11:07:54 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:07:56 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:07:57 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:07:57 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:07:59 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:07:59 PM [express] POST /api/auth/auth0-session 429 in 0ms
+0|Fallowl  | 11:08:02 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:08:04 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:08:04 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:08:06 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:08:07 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:08:07 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:08:09 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:08:09 PM [express] POST /api/auth/auth0-session 429 in 0ms
+0|Fallowl  | 11:08:12 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:08:14 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:08:14 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:08:16 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:08:17 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:08:17 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 📨 Received WebSocket message: { type: 'ping' }
+0|Fallowl  | 11:08:19 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:08:19 PM [express] POST /api/auth/auth0-session 429 in 1ms
+0|Fallowl  | 11:08:22 PM [express] POST /api/auth/auth0-session 429 in 1ms
