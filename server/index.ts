@@ -70,7 +70,10 @@ const getAllowedOrigins = (): string[] => {
     .filter(origin => origin.length > 0);
   
   if (allowedOrigins.length === 0) {
-    console.error('❌ No CORS origins configured for production. Set CLIENT_ORIGIN, REPLIT_DOMAINS, or REPLIT_DEV_DOMAIN environment variable.');
+    console.warn('⚠️  No CORS origins configured for production.');
+    console.warn('    Set CLIENT_ORIGIN environment variable to your domain (e.g., https://yourdomain.com)');
+    console.warn('    Or set REPLIT_DOMAINS for Replit deployments');
+    console.warn('    ⚠️  WARNING: Allowing all origins in production - this is insecure!');
   } else {
     console.log('✓ Production CORS origins configured:', allowedOrigins);
   }
@@ -80,9 +83,29 @@ const getAllowedOrigins = (): string[] => {
 
 const allowedOrigins = getAllowedOrigins();
 
+// Helper function to check if origin matches allowed patterns
+function isOriginAllowed(origin: string, allowedOrigins: string[]): boolean {
+  // Direct match
+  if (allowedOrigins.includes(origin)) {
+    return true;
+  }
+  
+  // Check wildcard patterns (e.g., *.example.com, *.replit.dev)
+  for (const allowed of allowedOrigins) {
+    if (allowed.startsWith('*.')) {
+      const domain = allowed.slice(2); // Remove *.
+      if (origin.endsWith(domain) || origin.endsWith('.' + domain)) {
+        return true;
+      }
+    }
+  }
+  
+  return false;
+}
+
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, curl, Postman)
+    // Allow requests with no origin (like mobile apps, curl, Postman, server-to-server)
     if (!origin) {
       return callback(null, true);
     }
@@ -94,11 +117,13 @@ app.use(cors({
     
     // In production, check against allowed origins
     if (allowedOrigins.length === 0) {
-      console.warn(`⚠️ CORS request from ${origin} rejected - no origins configured`);
-      return callback(new Error('CORS not configured'), false);
+      // No origins configured - allow all with warning (better than breaking in production)
+      // Users should configure CLIENT_ORIGIN for security
+      console.warn(`⚠️ CORS request from ${origin} allowed (no origins configured - INSECURE)`);
+      return callback(null, true);
     }
     
-    if (allowedOrigins.includes(origin)) {
+    if (isOriginAllowed(origin, allowedOrigins)) {
       return callback(null, true);
     }
     
