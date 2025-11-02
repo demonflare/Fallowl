@@ -3998,14 +3998,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.send(twimlResponse.toString());
       } else {
         // Handle incoming call to Twilio number - find which user owns this number
+        console.log(`📞 INCOMING CALL - Looking up owner of number: ${To}`);
         const incomingUser = await storage.getUserByTwilioPhoneNumber(To);
         
         if (!incomingUser) {
           console.error(`❌ No user found with Twilio number: ${To}`);
+          console.error(`   Available phone numbers in database: ${await storage.getAllUsers().then(users => users.filter(u => u.twilioPhoneNumber).map(u => u.twilioPhoneNumber).join(', '))}`);
           throw new Error(`No user configured for phone number ${To}`);
         }
         
-        console.log(`📞 Incoming call to ${To} belongs to user ${incomingUser.id} (${incomingUser.username})`);
+        console.log(`📞 ✅ Incoming call to ${To} belongs to user ${incomingUser.id} (${incomingUser.username})`);
         
         // Create call record in database for this user
         const callRecord = await storage.createCall(incomingUser.id, {
@@ -4084,9 +4086,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const dial = twimlResponse.dial(dialOptions);
         dial.client(incomingUser.username);
         
-        console.log(`📞 Incoming call routed to WebRTC client: ${incomingUser.username}`);
+        const twimlString = twimlResponse.toString();
+        console.log(`📞 ✅ Incoming call routed to WebRTC client: ${incomingUser.username}`);
+        console.log(`📞 Generated TwiML for incoming call:`, twimlString);
         res.set('Content-Type', 'text/xml');
-        res.send(twimlResponse.toString());
+        res.send(twimlString);
       }
     } catch (error: any) {
       console.error('Voice webhook error:', error);
