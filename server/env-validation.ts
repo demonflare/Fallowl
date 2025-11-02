@@ -78,9 +78,23 @@ export function validateEnvironment(): EnvValidationResult {
       warnings.push('BASE_URL uses HTTP instead of HTTPS - this will be auto-corrected but should be fixed');
     }
     
-    // CORS configuration
+    // CORS configuration - critical for production deployments
     if (!process.env.CLIENT_ORIGIN && !process.env.REPLIT_DOMAINS && !process.env.REPLIT_DEV_DOMAIN) {
-      warnings.push('No CORS origins configured for production');
+      console.log('\n⚠️  CORS Configuration Missing for Production:');
+      console.log('   Set CLIENT_ORIGIN environment variable to your frontend URL');
+      console.log('   Examples:');
+      console.log('     - AWS/Single domain: CLIENT_ORIGIN=https://yourdomain.com');
+      console.log('     - Multiple domains: CLIENT_ORIGIN=https://domain1.com,https://domain2.com');
+      console.log('     - Wildcard (Replit): CLIENT_ORIGIN=*.replit.dev');
+      console.log('   Without this, authentication may fail with 401 errors!\n');
+      warnings.push('CLIENT_ORIGIN not set - CORS will allow all origins (INSECURE!)');
+    } else {
+      const origins = [
+        process.env.CLIENT_ORIGIN,
+        process.env.REPLIT_DOMAINS,
+        process.env.REPLIT_DEV_DOMAIN
+      ].filter(Boolean);
+      console.log('✓ CORS origins configured:', origins.join(', '));
     }
   }
   
