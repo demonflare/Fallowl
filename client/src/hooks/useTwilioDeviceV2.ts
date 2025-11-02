@@ -614,7 +614,16 @@ class TwilioDeviceManager {
 
   sendDTMF(tone: string): void {
     if (this.currentState.activeCall) {
-      this.currentState.activeCall.sendDigits(tone);
+      try {
+        console.log(`📞 Sending DTMF tone: ${tone}`);
+        this.currentState.activeCall.sendDigits(tone);
+        console.log(`✅ DTMF tone sent successfully: ${tone}`);
+      } catch (error: any) {
+        console.error(`❌ Failed to send DTMF tone ${tone}:`, error);
+        this.notifyGlobalStore('dtmf_error', { tone, error: error.message });
+      }
+    } else {
+      console.warn(`⚠️ Cannot send DTMF tone ${tone} - no active call`);
     }
   }
 
