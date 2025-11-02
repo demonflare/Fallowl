@@ -149,14 +149,14 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Skip database test to avoid uncaught exceptions from disabled endpoint
-  // Just assume database is unavailable if we can't create a simple pool
+  // Test database connection
   let dbConnected = false;
   if (process.env.DATABASE_URL) {
-    console.log('🔌 Database URL detected - will use in-memory session store to avoid endpoint errors');
-    console.warn('🚫 Temporarily unsetting DATABASE_URL to prevent database initialization');
-    console.warn('   To use database: Enable it in Database tab, then restart the app\n');
-    delete process.env.DATABASE_URL;
+    dbConnected = await testDatabaseConnection();
+    
+    if (!dbConnected) {
+      console.warn('⚠️  Using in-memory session store as fallback\n');
+    }
   }
   
   // Configure session store based on database availability
