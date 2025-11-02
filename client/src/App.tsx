@@ -69,10 +69,17 @@ function AppContent() {
     const createSession = async () => {
       if (user && !sessionCreated) {
         try {
-          await apiRequest('POST', '/api/auth/auth0-session');
+          console.log('🔐 Creating backend session for user:', user.username);
+          const response = await apiRequest('POST', '/api/auth/auth0-session');
+          const data = await response.json();
+          console.log('✅ Backend session created:', data);
           setSessionCreated(true);
-        } catch (error) {
-          console.error('Failed to create session:', error);
+        } catch (error: any) {
+          console.error('❌ Failed to create backend session:', error);
+          setAuthError({
+            error: 'Session Creation Failed',
+            errorDescription: `Unable to create server session: ${error.message || 'Unknown error'}. Please try refreshing the page.`
+          });
         }
       }
     };

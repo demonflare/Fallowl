@@ -452,6 +452,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       (req as any).session.user = user;
       (req as any).session.auth0UserId = auth0UserId;
 
+      // Explicitly save the session to ensure it persists
+      await new Promise<void>((resolve, reject) => {
+        (req as any).session.save((err: any) => {
+          if (err) {
+            console.error('❌ Failed to save session:', err);
+            reject(err);
+          } else {
+            console.log('✅ Session saved successfully for user:', user.id);
+            resolve();
+          }
+        });
+      });
+
       res.json({ 
         message: "Session created",
         user: {
@@ -474,9 +487,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Session-based auth middleware
   const requireSessionAuth = (req: any, res: any, next: any) => {
+    console.log('🔐 Session auth check - Has session:', !!req.session, 'Has userId:', !!req.session?.userId);
     if (!req.session || !req.session.userId) {
-      return res.status(401).json({ message: "Not authenticated" });
+      console.error('❌ Session auth failed - No session or userId');
+      return res.status(401).json({ 
+        message: "Not authenticated",
+        details: "Session not found. Please refresh the page and log in again."
+      });
     }
+    console.log('✅ Session auth passed for user:', req.session.userId);
     next();
   };
 
@@ -5239,8 +5258,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/twilio/auto-recording/toggle", requireSessionAuth, async (req, res) => {
     try {
       const userId = (req as any).session?.userId;
+      console.log('🔐 Auto-recording toggle request - Session userId:', userId);
+      console.log('🔐 Session data:', JSON.stringify((req as any).session));
+      
+      if (!userId) {
+        console.error('❌ No userId in session');
+        return res.status(401).json({ 
+          message: "Not authenticated",
+          details: "No user session found. Please refresh the page and try again."
+        });
+      }
+      
       const user = await storage.getUser(userId);
       if (!user) {
+        console.error(`❌ User ${userId} not found in database`);
         return res.status(404).json({ message: "User not found" });
       }
 
@@ -5261,7 +5292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         autoRecordingEnabled: enabled
       });
     } catch (error: any) {
-      console.error("Error toggling auto-recording:", error);
+      console.error("❌ Error toggling auto-recording:", error);
       res.status(500).json({ error: error.message });
     }
   });

@@ -47,6 +47,9 @@ if (!envValidation.isValid) {
 
 const app = express();
 
+// Trust proxy - required for secure cookies to work behind load balancers/reverse proxies
+app.set('trust proxy', 1);
+
 // CORS configuration
 const getAllowedOrigins = (): string[] => {
   if (process.env.NODE_ENV !== 'production') {
@@ -160,38 +163,36 @@ app.use((req, res, next) => {
   }
   
   // Configure session store based on database availability
+  const isProduction = process.env.NODE_ENV === 'production';
+  const sessionConfig = {
+    secret: process.env.SESSION_SECRET!,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: 'auto' as const,
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+      sameSite: 'lax' as const
+    },
+    proxy: true
+  };
+  
   if (dbConnected) {
     console.log('✅ Using PostgreSQL session store');
     const PgSession = connectPgSimple(session);
     app.use(session({
+      ...sessionConfig,
       store: new PgSession({
         conString: process.env.DATABASE_URL,
         createTableIfMissing: true,
         tableName: 'session',
-      }),
-      secret: process.env.SESSION_SECRET!,
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
-      }
+      })
     }));
   } else {
     console.warn('⚠️  Database unavailable - using in-memory session store');
     console.warn('   Sessions will be lost on server restart.');
     console.warn('   To enable database: Go to Database tab → Enable/Resume your database\n');
-    app.use(session({
-      secret: process.env.SESSION_SECRET!,
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
-      }
-    }));
+    app.use(session(sessionConfig));
   }
   
   // Only run database-dependent operations if database is available
